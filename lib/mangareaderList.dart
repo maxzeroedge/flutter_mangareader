@@ -6,11 +6,15 @@ class MangaList extends StatelessWidget {
 		Key key, 
 		this.title, 
 		this.listFutureFunction,
-		this.pageType
+		this.pageType,
+		this.showCheckbox = false,
+		this.updatePagesSelected
 	}) : super(key: key);
 	final String title;
-	final dynamic listFutureFunction;
+	final Function listFutureFunction;
+	final Function updatePagesSelected;
 	final String pageType;
+	final bool showCheckbox;
 	Map<String, String> args;
 
 	String getNextRoute(bool isNext){
@@ -44,17 +48,11 @@ class MangaList extends StatelessWidget {
 		return ListView.builder(
 			itemCount: snapshotData.length,
 			itemBuilder: (context, position) {
-				return GestureDetector(
-					onTap: (){
-						Navigator.pushNamed(
-							context, 
-							this.getNextRoute(true),
-							arguments: snapshotData[position]
-						);
-					},
-					child: Card(
-						child: Text(snapshotData[position]["name"]),
-					),
+				return MangaListItem(
+					getNextRoute: this.getNextRoute,
+					showCheckbox: this.showCheckbox,
+					snapshotData: snapshotData[position],
+					updatePagesSelected: this.updatePagesSelected,
 				);
 			},
 		);
@@ -72,5 +70,77 @@ class MangaList extends StatelessWidget {
 				},
 			),
 		);
+	}
+}
+
+class MangaListItem extends StatefulWidget {
+	MangaListItem({
+		Key key,
+		this.getNextRoute,
+		this.snapshotData,
+		this.showCheckbox,
+		this.updatePagesSelected,
+		this.checkBoxChecked = false
+	}) : super ( key : key );
+
+	final Function getNextRoute;
+	final Function updatePagesSelected;
+	final Map snapshotData;
+	final bool showCheckbox;
+	final bool checkBoxChecked;
+
+	@override
+	MangaListItemState createState() {
+		return MangaListItemState();
+	}
+}
+
+class MangaListItemState extends State<MangaListItem> {
+	bool checkBoxChecked;
+
+	@override
+	void initState() {
+		super.initState();
+	}
+
+	@override
+	Widget build(BuildContext context) {
+		if(widget.updatePagesSelected != null){
+			setState(() {
+				checkBoxChecked = widget.updatePagesSelected(null).indexOf(widget.snapshotData["url"]) > -1;
+			});
+		}
+		Widget gestureWidget = GestureDetector(
+			onTap: (){
+				Navigator.pushNamed(
+					context, 
+					widget.getNextRoute(true),
+					arguments: widget.snapshotData
+				);
+			},
+			child: Card(
+				child: Text(widget.snapshotData["name"]),
+			),
+		);
+		if(widget.showCheckbox){
+			gestureWidget = Card(
+				child: Row(
+					children: <Widget>[
+						Checkbox(
+							value: checkBoxChecked,
+							onChanged: (bool value){
+								setState(() {
+									print(value);
+									print(value.runtimeType);
+									widget.updatePagesSelected(widget.snapshotData["url"], clear: false, delete: !value);
+								});
+							},
+						),
+						gestureWidget
+					],
+				),
+			);
+		}
+		return gestureWidget;
 	}
 }

@@ -4,10 +4,11 @@ import 'package:html/dom.dart';
 
 class MangaReaderParser{
 
-	String url_prefix = "https://www.mangareader.net";
+	String urlPrefix = "https://www.mangareader.net";
 	List<Map<String, String>> titles;
 	List<Map<String, String>> chapters;
 	List<Map<String, String>> pages;
+	List<String> pagesSelected;
 
 	Future<List<Map<String,String>>> fetchTitles ( Map<String,String> args ) async{
 		var response = await http.get("https://www.mangareader.net/alphabetical");
@@ -16,7 +17,7 @@ class MangaReaderParser{
 		htmlDocument.querySelectorAll("ul.series_alpha").forEach( (seriesAlphaUl)=> {
 			seriesAlphaUl.querySelectorAll("li").forEach( (seriesAlphaUlLi) => {
 				titles.add({
-					"url": this.url_prefix + seriesAlphaUlLi.querySelector("a").attributes["href"],
+					"url": this.urlPrefix + seriesAlphaUlLi.querySelector("a").attributes["href"],
 					"name": seriesAlphaUlLi.querySelector("a").text
 				})
 			} )
@@ -31,7 +32,7 @@ class MangaReaderParser{
 		List<Map<String,String>> chapters = [];
 		htmlDocument.querySelector("div#chapterlist table#listing").querySelectorAll("tr").forEach( (chapterItem)=> {
 			chapterItem.querySelector("a") != null ? chapters.add({
-				"url" :  this.url_prefix + chapterItem.querySelector("a").attributes["href"],
+				"url" :  this.urlPrefix + chapterItem.querySelector("a").attributes["href"],
 				"name": chapterItem.querySelector("a").text
 			}) : ''
 		} );
@@ -45,7 +46,7 @@ class MangaReaderParser{
 		List<Map<String,String>> pages = [];
 		htmlDocument.querySelector("div#selectpage select#pageMenu").querySelectorAll("option").forEach( (pageItem)=> {
 			pages.add({
-				"url" :  this.url_prefix + pageItem.attributes["value"],
+				"url" :  this.urlPrefix + pageItem.attributes["value"],
 				"name": pageItem.text,
 				"isCurrentPage": pageItem.attributes["selected"]
 			})
@@ -59,5 +60,21 @@ class MangaReaderParser{
 		var htmlDocument = parse(response.body);
 		String currentPageImage = htmlDocument.querySelector("div#imgholder img#img").attributes["src"];
 		return currentPageImage;
+	}
+
+	List<String> updatePagesSelected(String entry, {bool clear = false, bool delete = false}){
+		if( this.pagesSelected == null ){
+			this.pagesSelected = [];
+		}
+		if(clear){
+			this.pagesSelected = [];
+		} else if( entry != null ) {
+			if(delete){
+				this.pagesSelected.remove(entry);
+			} else {
+				this.pagesSelected.add(entry);
+			}
+		} 
+		return this.pagesSelected;
 	}
 }

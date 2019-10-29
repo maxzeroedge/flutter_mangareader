@@ -40,7 +40,9 @@ class MyApp extends StatelessWidget {
 				'/pages/list': (context) =>  MangaList(
 					title: ( ModalRoute.of(context).settings.arguments as Map<String, String> )["name"],
 					listFutureFunction: mangaReaderParser.fetchPages,
-					pageType: "Pages"
+					pageType: "Pages",
+					showCheckbox: true,
+					updatePagesSelected: mangaReaderParser.updatePagesSelected
 				),
 				'/page': (context) => MangaDetails(
 					title: ( ModalRoute.of(context).settings.arguments as Map<String, String> )["name"],
