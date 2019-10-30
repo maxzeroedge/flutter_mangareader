@@ -28,7 +28,10 @@ class MangaGeneric {
 						floatBtnAction();
 					}
 				},
-				child: Icon(Icons.file_download),
+				child: Opacity(
+					opacity: floatBtnAction != null ? 1.0 : 0.0,
+					child: Icon(Icons.file_download),
+				),
 				backgroundColor: Colors.blue,
 			),
 		);
