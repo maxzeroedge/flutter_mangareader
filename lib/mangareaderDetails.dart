@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mangareader/mangaFutureBuilder.dart';
+import 'package:mangareader/mangareaderGeneric.dart';
 
 class MangaDetails extends StatelessWidget {
 	MangaDetails({
@@ -16,18 +17,20 @@ class MangaDetails extends StatelessWidget {
 	Map<String, String> args;
 
 	Widget buildWidget(dynamic snapshotData){
-		return Column(
-			children: <Widget>[
-				Scrollable(
-					viewportBuilder: (context, offset){
-						return Column(
-							children: <Widget>[
-								Image.network(snapshotData)
-							],
-						);
-					},
-				)
-			],
+		return MangaGeneric().build(
+			Column(
+				children: <Widget>[
+					Scrollable(
+						viewportBuilder: (context, offset){
+							return Column(
+								children: <Widget>[
+									Image.network(snapshotData)
+								],
+							);
+						},
+					)
+				],
+			)
 		);
 	}
 

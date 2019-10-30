@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mangareader/mangaFutureBuilder.dart';
+import 'package:mangareader/mangareaderGeneric.dart';
 
 class MangaList extends StatelessWidget {
 	MangaList({
@@ -66,7 +67,9 @@ class MangaList extends StatelessWidget {
 			body: FutureBuilder(
 				future: listFuture,
 				builder: (context, snapshot) {
-					return MangaFutureBuilder().build(context, snapshot, buildWidget);
+					return MangaGeneric().build(
+						MangaFutureBuilder().build(context, snapshot, buildWidget)
+					);
 				},
 			),
 		);
