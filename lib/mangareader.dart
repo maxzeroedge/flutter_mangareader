@@ -1,7 +1,8 @@
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
+import 'package:downloads_path_provider/downloads_path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class MangaReaderParser{
 
@@ -79,13 +80,41 @@ class MangaReaderParser{
 		return this.pagesSelected;
 	}
 
-	Future<File> _downloadFile(String url, String filename) async {
+	Future<File> _downloadFile(String url, { String filename }) async {
+		if(filename == null){
+			var parts = url.split("/").reversed.iterator;
+			var fileName = parts.current;
+			parts.moveNext();
+			var folderName = "mangareader/" + parts.current;
+			filename = folderName + "/" + fileName.split("?")[0]; 
+		}
 		http.Client _client = new http.Client();
 		var req = await _client.get(Uri.parse(url));
 		var bytes = req.bodyBytes;
-		String dir = (await getApplicationDocumentsDirectory()).path;
+		await PermissionHandler().requestPermissions([PermissionGroup.storage]);
+		String dir = (await DownloadsPathProvider.downloadsDirectory).path;
 		File file = new File('$dir/$filename');
 		await file.writeAsBytes(bytes);
 		return file;
 	}
+
+	Future<void> downloadTitles ( List<Map<String, String>> titles ) async{
+		titles.forEach( (title) async => {
+			await downloadChapters(await fetchChapters(title))
+		});
+	}
+
+	Future<void> downloadChapters ( List<Map<String, String>> chapters ) async{
+		chapters.forEach( (page) async => {
+			await downloadPages( await fetchPages(page) )
+		});
+	}
+
+	Future<void> downloadPages ( List<Map<String, String>> pages ) async{
+		pages.forEach( (page) async => {
+			await _downloadFile( await getCurrentPageImage(page) )
+		});
+	}
+
+	
 }

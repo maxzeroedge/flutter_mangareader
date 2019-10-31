@@ -9,11 +9,13 @@ class MangaList extends StatelessWidget {
 		this.listFutureFunction,
 		this.pageType,
 		this.showCheckbox = false,
-		this.updatePagesSelected
+		this.updatePagesSelected,
+		this.floatFunction = null
 	}) : super(key: key);
 	final String title;
 	final Function listFutureFunction;
 	final Function updatePagesSelected;
+	final Function floatFunction;
 	final String pageType;
 	final bool showCheckbox;
 	Map<String, String> args;
@@ -62,13 +64,15 @@ class MangaList extends StatelessWidget {
 	@override
 	Widget build(BuildContext context) {
 		this.args = ModalRoute.of(context).settings.arguments;
+		this.updatePagesSelected(null, clear: true);
 		Future<List<Map<String, String>>> listFuture = this.listFutureFunction(args);
 		return Scaffold(
 			body: FutureBuilder(
 				future: listFuture,
 				builder: (context, snapshot) {
 					return MangaGeneric().build(
-						MangaFutureBuilder().build(context, snapshot, buildWidget)
+						MangaFutureBuilder().build(context, snapshot, buildWidget),
+						floatBtnAction: floatFunction
 					);
 				},
 			),

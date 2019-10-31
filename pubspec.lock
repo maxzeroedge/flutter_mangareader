@@ -43,6 +43,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.2"
+  downloads_path_provider:
+    dependency: "direct main"
+    description:
+      name: downloads_path_provider
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.0"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -95,13 +102,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.6.4"
-  path_provider:
-    dependency: "direct main"
-    description:
-      name: path_provider
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.4.0"
   pedantic:
     dependency: transitive
     description:
@@ -109,13 +109,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.0+1"
-  platform:
-    dependency: transitive
+  permission_handler:
+    dependency: "direct main"
     description:
-      name: platform
+      name: permission_handler
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.1"
+    version: "3.3.0"
   quiver:
     dependency: transitive
     description:
@@ -186,4 +186,3 @@ packages:
     version: "2.0.8"
 sdks:
   dart: ">=2.3.0 <3.0.0"
-  flutter: ">=0.1.4 <2.0.0"

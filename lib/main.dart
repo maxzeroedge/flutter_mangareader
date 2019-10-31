@@ -24,25 +24,33 @@ class MyApp extends StatelessWidget {
 				'/': (context) =>  MangaList(
 					title: 'Flutter MangaReader',
 					listFutureFunction: mangaReaderParser.fetchTitles,
-					pageType: "Titles"
+					showCheckbox: true,
+					pageType: "Titles",
+					updatePagesSelected: mangaReaderParser.updatePagesSelected
 				),
 				'/mangas/list': (context) =>  MangaList(
 					title: 'Flutter MangaReader',
 					listFutureFunction: mangaReaderParser.fetchTitles,
-					pageType: "Titles"
+					showCheckbox: true,
+					pageType: "Titles",
+					updatePagesSelected: mangaReaderParser.updatePagesSelected
 				),
 				// When navigating to the "/second" route, build the SecondScreen widget.
 				'/chapters/list': (context) =>  MangaList(
 					title: ( ModalRoute.of(context).settings.arguments as Map<String, String> )["name"],
 					listFutureFunction: mangaReaderParser.fetchChapters,
-					pageType: "Chapters"
+					showCheckbox: true,
+					pageType: "Chapters",
+					updatePagesSelected: mangaReaderParser.updatePagesSelected,
+					floatFunction: mangaReaderParser.downloadChapters
 				),
 				'/pages/list': (context) =>  MangaList(
 					title: ( ModalRoute.of(context).settings.arguments as Map<String, String> )["name"],
 					listFutureFunction: mangaReaderParser.fetchPages,
 					pageType: "Pages",
 					showCheckbox: true,
-					updatePagesSelected: mangaReaderParser.updatePagesSelected
+					updatePagesSelected: mangaReaderParser.updatePagesSelected,
+					floatFunction: mangaReaderParser.downloadPages
 				),
 				'/page': (context) => MangaDetails(
 					title: ( ModalRoute.of(context).settings.arguments as Map<String, String> )["name"],
