@@ -26,14 +26,16 @@ class MyApp extends StatelessWidget {
 					listFutureFunction: mangaReaderParser.fetchTitles,
 					showCheckbox: true,
 					pageType: "Titles",
-					updatePagesSelected: mangaReaderParser.updatePagesSelected
+					updatePagesSelected: mangaReaderParser.updatePagesSelected,
+					floatFunction: mangaReaderParser.downloadTitles
 				),
 				'/mangas/list': (context) =>  MangaList(
 					title: 'Flutter MangaReader',
 					listFutureFunction: mangaReaderParser.fetchTitles,
 					showCheckbox: true,
 					pageType: "Titles",
-					updatePagesSelected: mangaReaderParser.updatePagesSelected
+					updatePagesSelected: mangaReaderParser.updatePagesSelected,
+					floatFunction: mangaReaderParser.downloadTitles
 				),
 				// When navigating to the "/second" route, build the SecondScreen widget.
 				'/chapters/list': (context) =>  MangaList(

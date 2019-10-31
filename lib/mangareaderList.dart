@@ -72,7 +72,9 @@ class MangaList extends StatelessWidget {
 				builder: (context, snapshot) {
 					return MangaGeneric().build(
 						MangaFutureBuilder().build(context, snapshot, buildWidget),
-						floatBtnAction: floatFunction
+						floatBtnAction: ()=>{
+							floatFunction(this.updatePagesSelected())
+						}
 					);
 				},
 			),
