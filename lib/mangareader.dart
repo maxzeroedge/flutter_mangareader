@@ -10,7 +10,7 @@ class MangaReaderParser{
 	List<Map<String, String>> titles;
 	List<Map<String, String>> chapters;
 	List<Map<String, String>> pages;
-	List<String> pagesSelected;
+	List<Map<String, String>> pagesSelected;
 
 	Future<List<Map<String,String>>> fetchTitles ( Map<String,String> args ) async{
 		var response = await http.get("https://www.mangareader.net/alphabetical");
@@ -64,7 +64,7 @@ class MangaReaderParser{
 		return currentPageImage;
 	}
 
-	List<String> updatePagesSelected(String entry, {bool clear = false, bool delete = false}){
+	List<Map<String, String>> updatePagesSelected(Map<String, String> entry, {bool clear = false, bool delete = false}){
 		if( this.pagesSelected == null ){
 			this.pagesSelected = [];
 		}
@@ -81,17 +81,20 @@ class MangaReaderParser{
 	}
 
 	Future<File> _downloadFile(String url, { String filename }) async {
+		await PermissionHandler().requestPermissions([PermissionGroup.storage]);
 		if(filename == null){
 			var parts = url.split("/").reversed.iterator;
-			var fileName = parts.current;
 			parts.moveNext();
-			var folderName = "mangareader/" + parts.current;
+			var fileName = parts.current + "";
+			parts.moveNext();
+			var folderName = parts.current;
+			parts.moveNext();
+			folderName = "mangareader/" + parts.current + "/" + folderName + "/";
 			filename = folderName + "/" + fileName.split("?")[0]; 
 		}
 		http.Client _client = new http.Client();
 		var req = await _client.get(Uri.parse(url));
 		var bytes = req.bodyBytes;
-		await PermissionHandler().requestPermissions([PermissionGroup.storage]);
 		String dir = (await DownloadsPathProvider.downloadsDirectory).path;
 		File file = new File('$dir/$filename');
 		await file.writeAsBytes(bytes);

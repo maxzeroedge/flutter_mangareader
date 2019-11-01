@@ -73,7 +73,7 @@ class MangaList extends StatelessWidget {
 					return MangaGeneric().build(
 						MangaFutureBuilder().build(context, snapshot, buildWidget),
 						floatBtnAction: ()=>{
-							floatFunction(this.updatePagesSelected())
+							floatFunction(this.updatePagesSelected(null))
 						}
 					);
 				},
@@ -116,7 +116,7 @@ class MangaListItemState extends State<MangaListItem> {
 	Widget build(BuildContext context) {
 		if(widget.updatePagesSelected != null){
 			setState(() {
-				checkBoxChecked = widget.updatePagesSelected(null).indexOf(widget.snapshotData["url"]) > -1;
+				checkBoxChecked = widget.updatePagesSelected(null).indexOf(widget.snapshotData) > -1;
 			});
 		}
 		Widget gestureWidget = GestureDetector(
@@ -141,7 +141,7 @@ class MangaListItemState extends State<MangaListItem> {
 								setState(() {
 									print(value);
 									print(value.runtimeType);
-									widget.updatePagesSelected(widget.snapshotData["url"], clear: false, delete: !value);
+									widget.updatePagesSelected(widget.snapshotData, clear: false, delete: !value);
 								});
 							},
 						),
