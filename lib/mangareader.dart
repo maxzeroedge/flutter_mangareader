@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 import 'dart:io';
 import 'package:downloads_path_provider/downloads_path_provider.dart';
+// import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class MangaReaderParser{
@@ -82,12 +83,13 @@ class MangaReaderParser{
 
 	Future<File> _downloadFile(String url, { String filename }) async {
 		await PermissionHandler().requestPermissions([PermissionGroup.storage]);
+		var folderName = "";
 		if(filename == null){
 			var parts = url.split("/").reversed.iterator;
 			parts.moveNext();
 			var fileName = parts.current + "";
 			parts.moveNext();
-			var folderName = parts.current;
+			folderName = parts.current;
 			parts.moveNext();
 			folderName = "mangareader/" + parts.current + "/" + folderName + "/";
 			filename = folderName + "/" + fileName.split("?")[0]; 
@@ -96,6 +98,9 @@ class MangaReaderParser{
 		var req = await _client.get(Uri.parse(url));
 		var bytes = req.bodyBytes;
 		String dir = (await DownloadsPathProvider.downloadsDirectory).path;
+		// String dir = (await getApplicationDocumentsDirectory()).path;
+		print(dir);
+		await new Directory('$dir/$folderName').create(recursive: true);
 		File file = new File('$dir/$filename');
 		await file.writeAsBytes(bytes);
 		return file;
