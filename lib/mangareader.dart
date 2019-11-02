@@ -81,8 +81,28 @@ class MangaReaderParser{
 		return this.pagesSelected;
 	}
 
+	Future<bool> getStoragePermissions() async {
+		// bool checkResult = await SimplePermissions.checkPermission(
+		// 	Permission.WriteExternalStorage);
+		// if (!checkResult) {
+		// 	var status = await SimplePermissions.requestPermission(
+		// 		Permission.WriteExternalStorage);
+		// 	//print("permission request result is " + resReq.toString());
+		// 	if (status == PermissionStatus.authorized) {
+		// 		await downloadFile();
+		// 	}
+		// } else {
+		// 	await downloadFile();
+		// }
+		Map<PermissionGroup, PermissionStatus> permissions = await PermissionHandler().requestPermissions([PermissionGroup.storage]);
+		return permissions[PermissionGroup.storage] == PermissionStatus.granted;
+	}
+
 	Future<File> _downloadFile(String url, { String filename }) async {
-		await PermissionHandler().requestPermissions([PermissionGroup.storage]);
+		bool allowed = await getStoragePermissions();
+		if(!allowed){
+			return null;
+		}
 		var folderName = "";
 		if(filename == null){
 			var parts = url.split("/").reversed.iterator;
