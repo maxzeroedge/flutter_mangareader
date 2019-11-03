@@ -17,20 +17,18 @@ class MangaDetails extends StatelessWidget {
 	Map<String, String> args;
 
 	Widget buildWidget(dynamic snapshotData){
-		return MangaGeneric().build(
-			Column(
-				children: <Widget>[
-					Scrollable(
-						viewportBuilder: (context, offset){
-							return Column(
-								children: <Widget>[
-									Image.network(snapshotData)
-								],
-							);
-						},
-					)
-				],
-			)
+		return Column(
+			children: <Widget>[
+				Scrollable(
+					viewportBuilder: (context, offset){
+						return Column(
+							children: <Widget>[
+								Image.network(snapshotData)
+							],
+						);
+					},
+				)
+			],
 		);
 	}
 

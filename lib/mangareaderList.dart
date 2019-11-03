@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mangareader/mangaFutureBuilder.dart';
-import 'package:mangareader/mangareaderGeneric.dart';
 
 class MangaList extends StatelessWidget {
 	MangaList({
@@ -70,12 +69,7 @@ class MangaList extends StatelessWidget {
 			body: FutureBuilder(
 				future: listFuture,
 				builder: (context, snapshot) {
-					return MangaGeneric().build(
-						MangaFutureBuilder().build(context, snapshot, buildWidget),
-						floatBtnAction: ()=>{
-							floatFunction(this.updatePagesSelected(null))
-						}
-					);
+					return MangaFutureBuilder().build(context, snapshot, buildWidget);
 				},
 			),
 		);
@@ -127,9 +121,17 @@ class MangaListItemState extends State<MangaListItem> {
 					arguments: widget.snapshotData
 				);
 			},
-			child: Card(
-				child: Text(widget.snapshotData["name"]),
-			),
+			child: Container(
+				width: 400.0,
+				height: 55.0,
+				child: Row(
+					children: <Widget>[
+						Expanded(
+							child: Text(widget.snapshotData["name"])
+						)
+					],
+				),
+			)
 		);
 		if(widget.showCheckbox){
 			gestureWidget = Card(
