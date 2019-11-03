@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-class MangaGeneric extends StatelessWidget {
+class MangaGeneric extends StatefulWidget {
 	MangaGeneric({
 		Key key,
 		this.floatBtnAction = null,
@@ -8,29 +9,51 @@ class MangaGeneric extends StatelessWidget {
 	}): super(key: key);
 	final Function floatBtnAction;
 	final Widget childWidget;
+
+	@override
+	MangaGenericState createState() => MangaGenericState();
+
+	Future<bool> getStoragePermissions() async {
+		// bool checkResult = await SimplePermissions.checkPermission(
+		// 	Permission.WriteExternalStorage);
+		// if (!checkResult) {
+		// 	var status = await SimplePermissions.requestPermission(
+		// 		Permission.WriteExternalStorage);
+		// 	//print("permission request result is " + resReq.toString());
+		// 	if (status == PermissionStatus.authorized) {
+		// 		await downloadFile();
+		// 	}
+		// } else {
+		// 	await downloadFile();
+		// }
+		Map<PermissionGroup, PermissionStatus> permissions = await PermissionHandler().requestPermissions([PermissionGroup.storage]);
+		return permissions[PermissionGroup.storage] == PermissionStatus.granted;
+	}
+	
+}
+
+class MangaGenericState extends State<MangaGeneric> {
+
+	bool isDownloadInProgress = false;
 	final List<Map<String, String>> listItems = [
 		{
 			"name": "Downloads"
 		},
 		{
-			"name": "Progress"
+			"name": "About"
 		}
 	];
 
 	@override
 	Widget build(BuildContext buildContext) {
 		return Scaffold(
-			body: SafeArea(
-				minimum: const EdgeInsets.all(16.0),
-				child: this.childWidget,
-			),
 			appBar: AppBar(
 				title: Text("Manga Reader"),
 				actions: <Widget>[
 					GestureDetector(
 						child: Icon(Icons.refresh),
 						onTap: (){
-							// Reload List
+							// TODO: Reload List
 						},
 					)
 				],
@@ -45,9 +68,6 @@ class MangaGeneric extends StatelessWidget {
 								child: DrawerHeader(
 									child: Row(
 										children: <Widget>[
-											/* BackButton(
-												color: Colors.white,
-											), */
 											Text(
 												'Manga Reader',
 												style: TextStyle(
@@ -81,16 +101,33 @@ class MangaGeneric extends StatelessWidget {
 				),
 			),
 			floatingActionButton: FloatingActionButton(
-				onPressed: () {
-					if(this.floatBtnAction != null){
-						this.floatBtnAction();
+				onPressed: () async {
+					if(widget.floatBtnAction != null && !isDownloadInProgress){
+						bool allowed = await widget.getStoragePermissions();
+						if(allowed){
+							setState(() {
+								widget.floatBtnAction();
+							});
+						} else {
+							Scaffold.of(context).showSnackBar(new SnackBar(
+								content: new Text("Storage Permissions are Missing!"),
+							));
+						}
 					}
 				},
 				child: Opacity(
-					opacity: floatBtnAction != null ? 1.0 : 0.0,
-					child: Icon(Icons.file_download),
+					opacity: widget.floatBtnAction != null ? 1.0 : 0.0,
+					child: Icon(
+						isDownloadInProgress ? 
+						Icons.refresh
+						: Icons.file_download
+					),
 				),
 				backgroundColor: Colors.blue,
+			),
+			body: SafeArea(
+				minimum: const EdgeInsets.all(16.0),
+				child: widget.childWidget,
 			),
 		);
 	}

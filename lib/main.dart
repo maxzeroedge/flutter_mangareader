@@ -75,7 +75,16 @@ class MyApp extends StatelessWidget {
 						listFutureFunction: mangaReaderParser.getCurrentPageImage,
 						pageType: "Page"
 					),
-				)
+				),
+				'/downloads': (context) =>  MangaGeneric(
+					childWidget: MangaList(
+						title: "Downloads",
+						listFutureFunction: mangaReaderParser.getDownloadedItems,
+						pageType: "Downloads",
+						showCheckbox: false,
+						enableTapFunction: false,
+					),
+				),
 			},
 		);
 	}

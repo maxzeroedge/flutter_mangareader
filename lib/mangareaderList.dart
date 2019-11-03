@@ -9,7 +9,8 @@ class MangaList extends StatelessWidget {
 		this.pageType,
 		this.showCheckbox = false,
 		this.updatePagesSelected,
-		this.floatFunction = null
+		this.floatFunction = null,
+		this.enableTapFunction = true
 	}) : super(key: key);
 	final String title;
 	final Function listFutureFunction;
@@ -17,6 +18,7 @@ class MangaList extends StatelessWidget {
 	final Function floatFunction;
 	final String pageType;
 	final bool showCheckbox;
+	final bool enableTapFunction;
 	Map<String, String> args;
 
 	String getNextRoute(bool isNext){
@@ -29,6 +31,9 @@ class MangaList extends StatelessWidget {
 				break;
 			case "Pages":
 				return isNext ? "/page" : "/pages/list";
+				break;
+			case "Downloads":
+				return "/downloads";
 				break;
 			default:
 				return "/about";
@@ -55,6 +60,7 @@ class MangaList extends StatelessWidget {
 					showCheckbox: this.showCheckbox,
 					snapshotData: snapshotData[position],
 					updatePagesSelected: this.updatePagesSelected,
+					enableTapFunction: this.enableTapFunction
 				);
 			},
 		);
@@ -83,7 +89,8 @@ class MangaListItem extends StatefulWidget {
 		this.snapshotData,
 		this.showCheckbox,
 		this.updatePagesSelected,
-		this.checkBoxChecked = false
+		this.checkBoxChecked = false,
+		this.enableTapFunction
 	}) : super ( key : key );
 
 	final Function getNextRoute;
@@ -91,6 +98,7 @@ class MangaListItem extends StatefulWidget {
 	final Map snapshotData;
 	final bool showCheckbox;
 	final bool checkBoxChecked;
+	final bool enableTapFunction;
 
 	@override
 	MangaListItemState createState() {
@@ -115,11 +123,13 @@ class MangaListItemState extends State<MangaListItem> {
 		}
 		Widget gestureWidget = GestureDetector(
 			onTap: (){
-				Navigator.pushNamed(
+				if(widget.enableTapFunction){
+					Navigator.pushNamed(
 					context, 
 					widget.getNextRoute(true),
 					arguments: widget.snapshotData
 				);
+				}
 			},
 			child: Container(
 				width: 400.0,

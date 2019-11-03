@@ -3,7 +3,6 @@ import 'package:html/parser.dart' show parse;
 import 'dart:io';
 import 'package:downloads_path_provider/downloads_path_provider.dart';
 // import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class MangaReaderParser{
 
@@ -57,6 +56,13 @@ class MangaReaderParser{
 		return pages;
 	}
 
+	Future<List<Map<String,String>>> getDownloadedItems (Map<String,String> args) async{
+		List<Map<String,String>> pages = [];
+		Directory downloadsContent = await DownloadsPathProvider.downloadsDirectory;
+		await downloadsContent.list(recursive: true);
+		return pages;
+	}
+
 	Future<String> getCurrentPageImage (Map<String,String> args) async{
 		var url = args["url"];
 		var response = await http.get(url);
@@ -81,28 +87,7 @@ class MangaReaderParser{
 		return this.pagesSelected;
 	}
 
-	Future<bool> getStoragePermissions() async {
-		// bool checkResult = await SimplePermissions.checkPermission(
-		// 	Permission.WriteExternalStorage);
-		// if (!checkResult) {
-		// 	var status = await SimplePermissions.requestPermission(
-		// 		Permission.WriteExternalStorage);
-		// 	//print("permission request result is " + resReq.toString());
-		// 	if (status == PermissionStatus.authorized) {
-		// 		await downloadFile();
-		// 	}
-		// } else {
-		// 	await downloadFile();
-		// }
-		Map<PermissionGroup, PermissionStatus> permissions = await PermissionHandler().requestPermissions([PermissionGroup.storage]);
-		return permissions[PermissionGroup.storage] == PermissionStatus.granted;
-	}
-
 	Future<File> _downloadFile(String url, { String filename }) async {
-		bool allowed = await getStoragePermissions();
-		if(!allowed){
-			return null;
-		}
 		var folderName = "";
 		if(filename == null){
 			var parts = url.split("/").reversed.iterator;
