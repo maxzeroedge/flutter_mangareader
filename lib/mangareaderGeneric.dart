@@ -37,10 +37,12 @@ class MangaGenericState extends State<MangaGeneric> {
 	bool isDownloadInProgress = false;
 	final List<Map<String, String>> listItems = [
 		{
-			"name": "Downloads"
+			"name": "Downloads",
+			"routeName": "/downloads"
 		},
 		{
-			"name": "About"
+			"name": "About",
+			"routeName": "/about"
 		}
 	];
 
@@ -91,7 +93,13 @@ class MangaGenericState extends State<MangaGeneric> {
 											style: TextStyle(height: 2, fontSize: 17.0)
 										),
 										onTap: (){
-											// TODO
+											Navigator.pushNamed(
+												context, 
+												listItem["routeName"],
+												arguments: {
+													"name": listItem["name"]
+												}
+											);
 										},
 									)
 								)

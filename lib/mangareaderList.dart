@@ -132,7 +132,7 @@ class MangaListItemState extends State<MangaListItem> {
 				}
 			},
 			child: Container(
-				width: 400.0,
+				width: 301.0,
 				height: 55.0,
 				child: Row(
 					children: <Widget>[
