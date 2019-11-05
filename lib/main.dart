@@ -80,6 +80,7 @@ class MyApp extends StatelessWidget {
 					childWidget: MangaList(
 						title: "Downloads",
 						listFutureFunction: mangaReaderParser.getDownloadedItems,
+						updatePagesSelected: mangaReaderParser.updatePagesSelected,
 						pageType: "Downloads",
 						showCheckbox: false,
 						enableTapFunction: false,
