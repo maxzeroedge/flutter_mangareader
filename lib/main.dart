@@ -83,7 +83,7 @@ class MyApp extends StatelessWidget {
 						updatePagesSelected: mangaReaderParser.updatePagesSelected,
 						pageType: "Downloads",
 						showCheckbox: false,
-						enableTapFunction: false,
+						enableTapFunction: true,
 					),
 				),
 			},

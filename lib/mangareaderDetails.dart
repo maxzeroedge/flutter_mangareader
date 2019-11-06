@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mangareader/mangaFutureBuilder.dart';
-import 'package:mangareader/mangareaderGeneric.dart';
 
 class MangaDetails extends StatelessWidget {
 	MangaDetails({

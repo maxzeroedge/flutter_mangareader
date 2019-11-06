@@ -63,6 +63,7 @@ class MangaReaderParser{
 		if(args.containsKey("parentPath")){
 			parentPath += "/" + args["parentPath"];
 		}
+    print(parentPath);
 		if(args.containsKey("targetPath")){
 			parentPath = args["targetPath"];
 		}
@@ -71,7 +72,7 @@ class MangaReaderParser{
 			.forEach( (f) async => {
 			titles.add({
 				"name": f.path.split("/").last,
-				"path": f.absolute.path
+				"targetPath": f.absolute.path
 			})
 		});
 		return titles;
