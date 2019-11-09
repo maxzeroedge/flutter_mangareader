@@ -7,10 +7,13 @@ import 'package:downloads_path_provider/downloads_path_provider.dart';
 class MangaReaderData{
 	String url;
 	String name;
+	MangaReaderData parent;
+	String isCurrentPage;
 	List<MangaReaderData> children;
-	MangaReaderData({String url, String name}){
+	MangaReaderData({String url, String name, MangaReaderData parent, String isCurrentPage}){
 		this.url = url;
 		this.name = name;
+		this.parent = parent;
 	}
 
 	MangaReaderData getChild({String url, String name}){
@@ -22,12 +25,12 @@ class MangaReaderData{
 class MangaReaderParser{
 
 	String urlPrefix = "https://www.mangareader.net";
-	List<MangaReaderData> mangas;
+	MangaReaderData mangas;
 	List<Map<String, String>> pagesSelected;
 
 	Future<List<MangaReaderData>> fetchTitles ( Map<String,String> args ) async{
-		if(this.mangas != null && args["forceReload"] == null){
-			return this.mangas;
+		if(this.mangas != null && this.mangas.children != null && args["forceReload"] == null){
+			return this.mangas.children;
 		}
 		var response = await http.get("https://www.mangareader.net/alphabetical");
 		var htmlDocument = parse(response.body);
@@ -38,44 +41,50 @@ class MangaReaderParser{
 					MangaReaderData(
 						url: this.urlPrefix + seriesAlphaUlLi.querySelector("a").attributes["href"],
 						name: seriesAlphaUlLi.querySelector("a").text
-					)
-				)
+				))
 			} )
 		} );
+		this.mangas.children = titles;
 		return titles;
 	}
 
 	Future<List<MangaReaderData>> fetchChapters (Map<String,String> args) async{
-		if(this.mangas != null && args["forceReload"] == null){
-			return this.mangas;
+		if(this.mangas != null && this.mangas.children != null && args["forceReload"] == null){
+			return this.mangas.getChild(url: args["url"]).children;
 		}
 		var url = args["url"];
+		var parentChapter = MangaReaderData(
+			url: args["url"],
+			name: args["name"]
+		);
 		var response = await http.get(url);
 		var htmlDocument = parse(response.body);
 		List<MangaReaderData> chapters = [];
 		htmlDocument.querySelector("div#chapterlist table#listing").querySelectorAll("tr").forEach( (chapterItem)=> {
-			chapterItem.querySelector("a") != null ? chapters.add({
-				"url" :  this.urlPrefix + chapterItem.querySelector("a").attributes["href"],
-				"name": chapterItem.querySelector("a").text
-			}) : ''
+			chapterItem.querySelector("a") != null ? chapters.add(
+				MangaReaderData(
+				url :  this.urlPrefix + chapterItem.querySelector("a").attributes["href"],
+				name: chapterItem.querySelector("a").text,
+				parent: parentChapter
+			)) : ''
 		} );
 		return chapters;
 	}
 
 	Future<List<MangaReaderData>> fetchPages (Map<String,String> args) async{
-		if(this.pages != null && args["forceReload"] == null){
-			return this.pages;
-		}
+		// if(this.pages != null && args["forceReload"] == null){
+		// 	return this.pages;
+		// }
 		var url = args["url"];
 		var response = await http.get(url);
 		var htmlDocument = parse(response.body);
-		List<Map<String,String>> pages = [];
+		List<MangaReaderData> pages = [];
 		htmlDocument.querySelector("div#selectpage select#pageMenu").querySelectorAll("option").forEach( (pageItem)=> {
-			pages.add({
-				"url" :  this.urlPrefix + pageItem.attributes["value"],
-				"name": pageItem.text,
-				"isCurrentPage": pageItem.attributes["selected"]
-			})
+			pages.add(MangaReaderData(
+				url :  this.urlPrefix + pageItem.attributes["value"],
+				name: pageItem.text,
+				isCurrentPage: pageItem.attributes["selected"]
+			))
 		} );
 		return pages;
 	}
