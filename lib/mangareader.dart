@@ -26,9 +26,9 @@ class MangaReaderParser{
 
 	String urlPrefix = "https://www.mangareader.net";
 	MangaReaderData mangas;
-	List<Map<String, String>> pagesSelected;
+	List<MangaReaderData> pagesSelected;
 
-	Future<List<MangaReaderData>> fetchTitles ( Map<String,String> args ) async{
+	Future<List<MangaReaderData>> fetchTitles ( Map<String,dynamic> args ) async{
 		if(this.mangas != null && this.mangas.children != null && args["forceReload"] == null){
 			return this.mangas.children;
 		}
@@ -48,7 +48,7 @@ class MangaReaderParser{
 		return titles;
 	}
 
-	Future<List<MangaReaderData>> fetchChapters (Map<String,String> args) async{
+	Future<List<MangaReaderData>> fetchChapters (Map<String,dynamic> args) async{
 		if(this.mangas != null && this.mangas.children != null && args["forceReload"] == null){
 			return this.mangas.getChild(url: args["url"]).children;
 		}
@@ -71,7 +71,7 @@ class MangaReaderParser{
 		return chapters;
 	}
 
-	Future<List<MangaReaderData>> fetchPages (Map<String,String> args) async{
+	Future<List<MangaReaderData>> fetchPages (Map<String,dynamic> args) async{
 		// if(this.pages != null && args["forceReload"] == null){
 		// 	return this.pages;
 		// }
@@ -158,19 +158,19 @@ class MangaReaderParser{
 		return file;
 	}
 
-	Future<void> downloadTitles ( List<Map<String, String>> titles ) async{
+	Future<void> downloadTitles ( List<MangaReaderData> titles ) async{
 		titles.forEach( (title) async => {
 			await downloadChapters(await fetchChapters(title))
 		});
 	}
 
-	Future<void> downloadChapters ( List<Map<String, String>> chapters ) async{
+	Future<void> downloadChapters ( List<MangaReaderData> chapters ) async{
 		chapters.forEach( (page) async => {
 			await downloadPages( await fetchPages(page) )
 		});
 	}
 
-	Future<void> downloadPages ( List<Map<String, String>> pages ) async{
+	Future<void> downloadPages ( List<MangaReaderData> pages ) async{
 		pages.forEach( (page) async => {
 			await _downloadFile( await getCurrentPageImage(page) )
 		});
