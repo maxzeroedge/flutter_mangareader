@@ -4,34 +4,55 @@ import 'dart:io';
 import 'package:downloads_path_provider/downloads_path_provider.dart';
 // import 'package:path_provider/path_provider.dart';
 
+class MangaReaderData{
+	String url;
+	String name;
+	List<MangaReaderData> children;
+	MangaReaderData({String url, String name}){
+		this.url = url;
+		this.name = name;
+	}
+
+	MangaReaderData getChild({String url, String name}){
+		int childIndex = children.indexWhere( (mangaReaderData) => mangaReaderData.name == name || mangaReaderData.url == url ); 
+		return children[childIndex];
+	}
+}
+
 class MangaReaderParser{
 
 	String urlPrefix = "https://www.mangareader.net";
-	List<Map<String, String>> titles;
-	List<Map<String, String>> chapters;
-	List<Map<String, String>> pages;
+	List<MangaReaderData> mangas;
 	List<Map<String, String>> pagesSelected;
 
-	Future<List<Map<String,String>>> fetchTitles ( Map<String,String> args ) async{
+	Future<List<MangaReaderData>> fetchTitles ( Map<String,String> args ) async{
+		if(this.mangas != null && args["forceReload"] == null){
+			return this.mangas;
+		}
 		var response = await http.get("https://www.mangareader.net/alphabetical");
 		var htmlDocument = parse(response.body);
-		List<Map<String,String>> titles = [];
+		List<MangaReaderData> titles = [];
 		htmlDocument.querySelectorAll("ul.series_alpha").forEach( (seriesAlphaUl)=> {
 			seriesAlphaUl.querySelectorAll("li").forEach( (seriesAlphaUlLi) => {
-				titles.add({
-					"url": this.urlPrefix + seriesAlphaUlLi.querySelector("a").attributes["href"],
-					"name": seriesAlphaUlLi.querySelector("a").text
-				})
+				titles.add(
+					MangaReaderData(
+						url: this.urlPrefix + seriesAlphaUlLi.querySelector("a").attributes["href"],
+						name: seriesAlphaUlLi.querySelector("a").text
+					)
+				)
 			} )
 		} );
 		return titles;
 	}
 
-	Future<List<Map<String,String>>> fetchChapters (Map<String,String> args) async{
+	Future<List<MangaReaderData>> fetchChapters (Map<String,String> args) async{
+		if(this.mangas != null && args["forceReload"] == null){
+			return this.mangas;
+		}
 		var url = args["url"];
 		var response = await http.get(url);
 		var htmlDocument = parse(response.body);
-		List<Map<String,String>> chapters = [];
+		List<MangaReaderData> chapters = [];
 		htmlDocument.querySelector("div#chapterlist table#listing").querySelectorAll("tr").forEach( (chapterItem)=> {
 			chapterItem.querySelector("a") != null ? chapters.add({
 				"url" :  this.urlPrefix + chapterItem.querySelector("a").attributes["href"],
@@ -41,7 +62,10 @@ class MangaReaderParser{
 		return chapters;
 	}
 
-	Future<List<Map<String,String>>> fetchPages (Map<String,String> args) async{
+	Future<List<MangaReaderData>> fetchPages (Map<String,String> args) async{
+		if(this.pages != null && args["forceReload"] == null){
+			return this.pages;
+		}
 		var url = args["url"];
 		var response = await http.get(url);
 		var htmlDocument = parse(response.body);
