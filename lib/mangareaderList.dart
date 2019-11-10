@@ -95,7 +95,7 @@ class MangaListItem extends StatefulWidget {
 
 	final Function getNextRoute;
 	final Function updatePagesSelected;
-	final Map snapshotData;
+	final dynamic snapshotData;
 	final bool showCheckbox;
 	final bool checkBoxChecked;
 	final bool enableTapFunction;

@@ -7,8 +7,8 @@ import 'package:downloads_path_provider/downloads_path_provider.dart';
 class MangaReaderData{
 	String url;
 	String name;
+	String levelType;
 	MangaReaderData parent;
-	String isCurrentPage;
 	List<MangaReaderData> children;
 	MangaReaderData({String url, String name, MangaReaderData parent, String isCurrentPage}){
 		this.url = url;
@@ -20,6 +20,20 @@ class MangaReaderData{
 		int childIndex = children.indexWhere( (mangaReaderData) => mangaReaderData.name == name || mangaReaderData.url == url ); 
 		return children[childIndex];
 	}
+
+	Map<String, String> toMap(){
+		return Map.from({
+			"url": this.url,
+			"name": this.name
+		});
+	}
+
+	static MangaReaderData fromMap(Map<String, String> args){
+		return MangaReaderData(
+			url: args["url"],
+			name: args["name"]
+		);
+	}
 }
 
 class MangaReaderParser{
@@ -28,7 +42,7 @@ class MangaReaderParser{
 	MangaReaderData mangas;
 	List<MangaReaderData> pagesSelected;
 
-	Future<List<MangaReaderData>> fetchTitles ( Map<String,dynamic> args ) async{
+	Future<List<MangaReaderData>> fetchTitles ( Map<String,String> args ) async{
 		if(this.mangas != null && this.mangas.children != null && args["forceReload"] == null){
 			return this.mangas.children;
 		}
@@ -48,15 +62,19 @@ class MangaReaderParser{
 		return titles;
 	}
 
-	Future<List<MangaReaderData>> fetchChapters (Map<String,dynamic> args) async{
-		if(this.mangas != null && this.mangas.children != null && args["forceReload"] == null){
-			return this.mangas.getChild(url: args["url"]).children;
+	// args contains the title information
+	Future<List<MangaReaderData>> fetchChapters (Map<String,String> args) async{
+		var parentTitle = null;
+		if(this.mangas != null && this.mangas.children != null ){
+			parentTitle = this.mangas.getChild(url: args["url"]);
+		}
+		if(parentTitle != null && args["forceReload"] == null){
+			return parentTitle.children;
+		}
+		if(parentTitle == null){
+			parentTitle = MangaReaderData.fromMap(args);
 		}
 		var url = args["url"];
-		var parentChapter = MangaReaderData(
-			url: args["url"],
-			name: args["name"]
-		);
 		var response = await http.get(url);
 		var htmlDocument = parse(response.body);
 		List<MangaReaderData> chapters = [];
@@ -65,16 +83,27 @@ class MangaReaderParser{
 				MangaReaderData(
 				url :  this.urlPrefix + chapterItem.querySelector("a").attributes["href"],
 				name: chapterItem.querySelector("a").text,
-				parent: parentChapter
+				parent: parentTitle
 			)) : ''
 		} );
 		return chapters;
 	}
 
-	Future<List<MangaReaderData>> fetchPages (Map<String,dynamic> args) async{
-		// if(this.pages != null && args["forceReload"] == null){
-		// 	return this.pages;
-		// }
+	// args contains the chapter information
+	Future<List<MangaReaderData>> fetchPages (Map<String,String> args) async{
+		MangaReaderData parentChapter = null;
+		if( this.mangas != null && this.mangas.children != null ){
+			parentChapter = this.mangas.getChild(url: args["parentTitleUrl"]);
+			if(parentChapter != null){
+				parentChapter = parentChapter.getChild(url: args["url"]);
+				if( parentChapter != null && args["forceReload"] != null){
+					return parentChapter.children;
+				}
+			} 
+			if(parentChapter == null) {
+				parentChapter = MangaReaderData.fromMap(args);
+			}
+		}
 		var url = args["url"];
 		var response = await http.get(url);
 		var htmlDocument = parse(response.body);
@@ -83,6 +112,7 @@ class MangaReaderParser{
 			pages.add(MangaReaderData(
 				url :  this.urlPrefix + pageItem.attributes["value"],
 				name: pageItem.text,
+				parent: parentChapter,
 				isCurrentPage: pageItem.attributes["selected"]
 			))
 		} );
@@ -118,7 +148,7 @@ class MangaReaderParser{
 		return currentPageImage;
 	}
 
-	List<Map<String, String>> updatePagesSelected(Map<String, String> entry, {bool clear = false, bool delete = false}){
+	List<MangaReaderData> updatePagesSelected(MangaReaderData entry, {bool clear = false, bool delete = false}){
 		if( this.pagesSelected == null ){
 			this.pagesSelected = [];
 		}
@@ -158,21 +188,22 @@ class MangaReaderParser{
 		return file;
 	}
 
+	// TODO: These fetch calls need parent data in MangaReaderData
 	Future<void> downloadTitles ( List<MangaReaderData> titles ) async{
 		titles.forEach( (title) async => {
-			await downloadChapters(await fetchChapters(title))
+			await downloadChapters(await fetchChapters(title.toMap()))
 		});
 	}
 
 	Future<void> downloadChapters ( List<MangaReaderData> chapters ) async{
 		chapters.forEach( (page) async => {
-			await downloadPages( await fetchPages(page) )
+			await downloadPages( await fetchPages(page.toMap()) )
 		});
 	}
 
 	Future<void> downloadPages ( List<MangaReaderData> pages ) async{
 		pages.forEach( (page) async => {
-			await _downloadFile( await getCurrentPageImage(page) )
+			await _downloadFile( await getCurrentPageImage(page.toMap()) )
 		});
 	}
 
