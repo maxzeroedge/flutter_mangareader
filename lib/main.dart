@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mangareader/mangareaderDetails.dart';
 import 'package:mangareader/mangareaderGeneric.dart';
+import 'package:mangareader/mangareaderListPageView.dart';
 import 'mangareader.dart';
 import 'mangareaderList.dart';
 
@@ -60,12 +61,13 @@ class MyApp extends StatelessWidget {
 					floatBtnAction: this.floatBtnFunction(mangaReaderParser.downloadChapters),
 				),
 				'/pages/list': (context) =>  MangaGeneric(
-					childWidget: MangaList(
+					childWidget: MangaPageView(
 						title: ( ModalRoute.of(context).settings.arguments as MangaReaderData ).name,
 						listFutureFunction: mangaReaderParser.fetchPages,
 						pageType: "Pages",
 						showCheckbox: true,
 						updatePagesSelected: mangaReaderParser.updatePagesSelected,
+						childFutureFunction: mangaReaderParser.getCurrentPageImage,
 					),
 					floatBtnAction: this.floatBtnFunction(mangaReaderParser.downloadPages)
 				),
