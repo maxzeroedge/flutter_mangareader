@@ -51,7 +51,7 @@ class MyApp extends StatelessWidget {
 				// When navigating to the "/second" route, build the SecondScreen widget.
 				'/chapters/list': (context) =>  MangaGeneric(
 					childWidget: MangaList(
-						title: ( ModalRoute.of(context).settings.arguments as Map<String, String> )["name"],
+						title: ( ModalRoute.of(context).settings.arguments as MangaReaderData ).name,
 						listFutureFunction: mangaReaderParser.fetchChapters,
 						showCheckbox: true,
 						pageType: "Chapters",
@@ -61,7 +61,7 @@ class MyApp extends StatelessWidget {
 				),
 				'/pages/list': (context) =>  MangaGeneric(
 					childWidget: MangaList(
-						title: ( ModalRoute.of(context).settings.arguments as Map<String, String> )["name"],
+						title: ( ModalRoute.of(context).settings.arguments as MangaReaderData ).name,
 						listFutureFunction: mangaReaderParser.fetchPages,
 						pageType: "Pages",
 						showCheckbox: true,
@@ -71,7 +71,7 @@ class MyApp extends StatelessWidget {
 				),
 				'/page': (context) => MangaGeneric(
 					childWidget: MangaDetails(
-						title: ( ModalRoute.of(context).settings.arguments as Map<String, String> )["name"],
+						title: ( ModalRoute.of(context).settings.arguments as MangaReaderData ).name,
 						listFutureFunction: mangaReaderParser.getCurrentPageImage,
 						pageType: "Page"
 					),

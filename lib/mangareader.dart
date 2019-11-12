@@ -16,19 +16,29 @@ class MangaReaderData{
 		this.parent = parent;
 	}
 
-	MangaReaderData getChild({String url, String name}){
+	List<dynamic> getChild({String url, String name}){
 		int childIndex = children.indexWhere( (mangaReaderData) => mangaReaderData.name == name || mangaReaderData.url == url ); 
-		return children[childIndex];
+		// return remove && childIndex > -1 ? children.removeAt(childIndex) : children[childIndex];
+		if(childIndex > -1){
+			return [children[childIndex], childIndex];
+		} else {
+			return [null, childIndex];
+		}
 	}
 
 	Map<String, String> toMap(){
 		return Map.from({
 			"url": this.url,
-			"name": this.name
+			"name": this.name,
+			"parentUrl": this.parent != null ? this.parent.url : '',
+			"parentName": this.parent != null ? this.parent.name : '',
 		});
 	}
 
 	static MangaReaderData fromMap(Map<String, String> args){
+		if(args == null){
+			return MangaReaderData();
+		}
 		return MangaReaderData(
 			url: args["url"],
 			name: args["name"]
@@ -39,11 +49,11 @@ class MangaReaderData{
 class MangaReaderParser{
 
 	String urlPrefix = "https://www.mangareader.net";
-	MangaReaderData mangas;
+	MangaReaderData mangas = MangaReaderData();
 	List<MangaReaderData> pagesSelected;
 
 	Future<List<MangaReaderData>> fetchTitles ( Map<String,String> args ) async{
-		if(this.mangas != null && this.mangas.children != null && args["forceReload"] == null){
+		if(this.mangas != null && this.mangas.children != null && args != null && args["forceReload"] == null){
 			return this.mangas.children;
 		}
 		var response = await http.get("https://www.mangareader.net/alphabetical");
@@ -64,11 +74,16 @@ class MangaReaderParser{
 
 	// args contains the title information
 	Future<List<MangaReaderData>> fetchChapters (Map<String,String> args) async{
-		var parentTitle = null;
-		if(this.mangas != null && this.mangas.children != null ){
-			parentTitle = this.mangas.getChild(url: args["url"]);
+		var parentTitle = null, parentTitleIndex = -1;
+		if(args == null){ // This is on going back
+			return null;
 		}
-		if(parentTitle != null && args["forceReload"] == null){
+		if(this.mangas != null && this.mangas.children != null ){
+			var temp = this.mangas.getChild(url: args["url"]);
+			parentTitle = temp[0];
+			parentTitleIndex = temp[1];
+		}
+		if(parentTitle != null && parentTitle.children != null && args["forceReload"] == null){
 			return parentTitle.children;
 		}
 		if(parentTitle == null){
@@ -86,16 +101,27 @@ class MangaReaderParser{
 				parent: parentTitle
 			)) : ''
 		} );
+		parentTitle.children = chapters;
+		this.mangas.children[parentTitleIndex] = parentTitle;
 		return chapters;
 	}
 
 	// args contains the chapter information
 	Future<List<MangaReaderData>> fetchPages (Map<String,String> args) async{
-		MangaReaderData parentChapter = null;
+		MangaReaderData parentChapter, parentTitle;
+		if(args == null){ // This is on going back
+			return null;
+		}
+		int parentChapterIndex = -1, parentTitleIndex = -1;
+		// TODO: Check Why children is null here and not above
 		if( this.mangas != null && this.mangas.children != null ){
-			parentChapter = this.mangas.getChild(url: args["parentTitleUrl"]);
-			if(parentChapter != null){
-				parentChapter = parentChapter.getChild(url: args["url"]);
+			var temp = this.mangas.getChild(url: args["parentUrl"]);
+			parentTitle = temp[0];
+			parentTitleIndex = temp[1];
+			if(parentTitle != null && parentTitle.children != null){
+				temp = parentTitle.getChild(url: args["url"]);
+				parentChapter = temp[0];
+				parentChapterIndex = temp[1];
 				if( parentChapter != null && args["forceReload"] != null){
 					return parentChapter.children;
 				}
@@ -116,6 +142,9 @@ class MangaReaderParser{
 				isCurrentPage: pageItem.attributes["selected"]
 			))
 		} );
+		parentChapter.children = pages;
+		parentTitle.children[parentChapterIndex] = parentChapter;
+		this.mangas.children[parentTitleIndex] = parentTitle;
 		return pages;
 	}
 

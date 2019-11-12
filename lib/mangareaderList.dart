@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mangareader/mangaFutureBuilder.dart';
+import 'package:mangareader/mangareader.dart';
 
 class MangaList extends StatelessWidget {
 	MangaList({
@@ -68,9 +69,11 @@ class MangaList extends StatelessWidget {
 
 	@override
 	Widget build(BuildContext context) {
-		this.args = ModalRoute.of(context).settings.arguments;
+		if( ModalRoute.of(context).settings.arguments != null ){
+			this.args = ( ModalRoute.of(context).settings.arguments as MangaReaderData ).toMap();
+		}
 		this.updatePagesSelected(null, clear: true);
-		Future<List<Map<String, String>>> listFuture = this.listFutureFunction(args);
+		Future<List<MangaReaderData>> listFuture = this.listFutureFunction(this.args);
 		return Scaffold(
 			body: FutureBuilder(
 				future: listFuture,
@@ -137,7 +140,7 @@ class MangaListItemState extends State<MangaListItem> {
 				child: Row(
 					children: <Widget>[
 						Expanded(
-							child: Text(widget.snapshotData["name"])
+							child: Text(widget.snapshotData.name)
 						)
 					],
 				),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mangareader/mangaFutureBuilder.dart';
+import 'package:mangareader/mangareader.dart';
 
 class MangaDetails extends StatelessWidget {
 	MangaDetails({
@@ -33,7 +34,7 @@ class MangaDetails extends StatelessWidget {
 
 	@override
 	Widget build(BuildContext context) {
-		this.args = ModalRoute.of(context).settings.arguments;
+		this.args = ( ModalRoute.of(context).settings.arguments as MangaReaderData ).toMap();
 		return Scaffold(
 			body: FutureBuilder(
 				future: this.listFutureFunction(this.args),
