@@ -29,6 +29,8 @@ dependencies:
   path_provider: ^1.4.0
   downloads_path_provider: ^0.1.0
   permission_handler: ^3.3.0
+  sqflite:
+  path:
 
 dev_dependencies:
   flutter_test:

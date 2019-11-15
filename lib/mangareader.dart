@@ -2,149 +2,109 @@ import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 import 'dart:io';
 import 'package:downloads_path_provider/downloads_path_provider.dart';
+import 'package:mangareader/mangareaderDBHandler.dart';
 // import 'package:path_provider/path_provider.dart';
-
-class MangaReaderData{
-	String url;
-	String name;
-	String levelType;
-	MangaReaderData parent;
-	List<MangaReaderData> children;
-	MangaReaderData({String url, String name, MangaReaderData parent, String isCurrentPage}){
-		this.url = url;
-		this.name = name;
-		this.parent = parent;
-	}
-
-	List<dynamic> getChild({String url, String name}){
-		int childIndex = children.indexWhere( (mangaReaderData) => mangaReaderData.name == name || mangaReaderData.url == url ); 
-		// return remove && childIndex > -1 ? children.removeAt(childIndex) : children[childIndex];
-		if(childIndex > -1){
-			return [children[childIndex], childIndex];
-		} else {
-			return [null, childIndex];
-		}
-	}
-
-	Map<String, String> toMap(){
-		return Map.from({
-			"url": this.url,
-			"name": this.name,
-			"parentUrl": this.parent != null ? this.parent.url : '',
-			"parentName": this.parent != null ? this.parent.name : '',
-		});
-	}
-
-	static MangaReaderData fromMap(Map<String, String> args){
-		if(args == null){
-			return MangaReaderData();
-		}
-		return MangaReaderData(
-			url: args["url"],
-			name: args["name"]
-		);
-	}
-}
-
 class MangaReaderParser{
 
 	String urlPrefix = "https://www.mangareader.net";
-	MangaReaderData mangas = MangaReaderData();
 	List<MangaReaderData> pagesSelected;
 
 	Future<List<MangaReaderData>> fetchTitles ( Map<String,String> args ) async{
-		if(this.mangas != null && this.mangas.children != null && args != null && args["forceReload"] == null){
-			return this.mangas.children;
+		List<MangaReaderData> titles = await MangaReaderDBHandler.getAllParentsFromDB();
+		if(titles != null && titles.length > 0 && args["forceReload"] == null){
+			return titles;
 		}
 		var response = await http.get("https://www.mangareader.net/alphabetical");
 		var htmlDocument = parse(response.body);
-		List<MangaReaderData> titles = [];
 		htmlDocument.querySelectorAll("ul.series_alpha").forEach( (seriesAlphaUl)=> {
 			seriesAlphaUl.querySelectorAll("li").forEach( (seriesAlphaUlLi) => {
 				titles.add(
 					MangaReaderData(
 						url: this.urlPrefix + seriesAlphaUlLi.querySelector("a").attributes["href"],
-						name: seriesAlphaUlLi.querySelector("a").text
+						name: seriesAlphaUlLi.querySelector("a").text,
+						parent: null
 				))
 			} )
 		} );
-		this.mangas.children = titles;
+		await MangaReaderDBHandler.bulkInsert(titles);
 		return titles;
 	}
 
 	// args contains the title information
 	Future<List<MangaReaderData>> fetchChapters (Map<String,String> args) async{
-		var parentTitle = null, parentTitleIndex = -1;
-		if(args == null){ // This is on going back
+		// This "SHOULD" never be true
+		if(args.isEmpty){
 			return null;
 		}
-		if(this.mangas != null && this.mangas.children != null ){
-			var temp = this.mangas.getChild(url: args["url"]);
-			parentTitle = temp[0];
-			parentTitleIndex = temp[1];
+		List<MangaReaderData> titles = await MangaReaderDBHandler.getFromDB(
+			url: args["url"]
+		);
+		if(titles == null || titles.length != 1){
+			print("How come no / more than 1 entry for the selected title?");
+			return null;
 		}
-		if(parentTitle != null && parentTitle.children != null && args["forceReload"] == null){
-			return parentTitle.children;
-		}
-		if(parentTitle == null){
-			parentTitle = MangaReaderData.fromMap(args);
+		List<MangaReaderData> chapters = await MangaReaderDBHandler.getFromDB(
+			url: args["url"],
+			parent: titles[0]
+		);
+		if(chapters != null && chapters.length > 0 && args["forceReload"] == null){
+			return chapters;
 		}
 		var url = args["url"];
 		var response = await http.get(url);
 		var htmlDocument = parse(response.body);
-		List<MangaReaderData> chapters = [];
 		htmlDocument.querySelector("div#chapterlist table#listing").querySelectorAll("tr").forEach( (chapterItem)=> {
 			chapterItem.querySelector("a") != null ? chapters.add(
 				MangaReaderData(
-				url :  this.urlPrefix + chapterItem.querySelector("a").attributes["href"],
-				name: chapterItem.querySelector("a").text,
-				parent: parentTitle
-			)) : ''
+					url :  this.urlPrefix + chapterItem.querySelector("a").attributes["href"],
+					name: chapterItem.querySelector("a").text,
+					parent: titles[0]
+				)
+			) : ''
 		} );
-		parentTitle.children = chapters;
-		this.mangas.children[parentTitleIndex] = parentTitle;
+		await MangaReaderDBHandler.bulkInsert(chapters);
 		return chapters;
 	}
 
 	// args contains the chapter information
 	Future<List<MangaReaderData>> fetchPages (Map<String,String> args) async{
-		MangaReaderData parentChapter, parentTitle;
-		if(args == null){ // This is on going back
+		// This "SHOULD" never be true
+		if(args.isEmpty){
 			return null;
 		}
-		int parentChapterIndex = -1, parentTitleIndex = -1;
-		// TODO: Check Why children is null here and not above
-		if( this.mangas != null && this.mangas.children != null ){
-			var temp = this.mangas.getChild(url: args["parentUrl"]);
-			parentTitle = temp[0];
-			parentTitleIndex = temp[1];
-			if(parentTitle != null && parentTitle.children != null){
-				temp = parentTitle.getChild(url: args["url"]);
-				parentChapter = temp[0];
-				parentChapterIndex = temp[1];
-				if( parentChapter != null && args["forceReload"] != null){
-					return parentChapter.children;
-				}
-			} 
-			if(parentChapter == null) {
-				parentChapter = MangaReaderData.fromMap(args);
-			}
+		List<MangaReaderData> titles = await MangaReaderDBHandler.getFromDB(
+			url: args["url"]
+		);
+		if(titles == null || titles.length != 1){
+			print("How come no / more than 1 entry for the selected title?");
+			return null;
+		}
+		List<MangaReaderData> chapters = await MangaReaderDBHandler.getFromDB(
+			url: args["url"],
+			parent: titles[0]
+		);
+		if(chapters == null || chapters.length != 1){
+			print("How come no / more than 1 entry for the selected chapter?");
+			return null;
+		}
+		List<MangaReaderData> pages = await MangaReaderDBHandler.getFromDB(
+			url: args["url"],
+			parent: chapters[0]
+		);
+		if(pages != null && pages.length > 0 && args["forceReload"] == null){
+			return pages;
 		}
 		var url = args["url"];
 		var response = await http.get(url);
 		var htmlDocument = parse(response.body);
-		List<MangaReaderData> pages = [];
 		htmlDocument.querySelector("div#selectpage select#pageMenu").querySelectorAll("option").forEach( (pageItem)=> {
 			pages.add(MangaReaderData(
 				url :  this.urlPrefix + pageItem.attributes["value"],
 				name: pageItem.text,
-				parent: parentChapter,
-				isCurrentPage: pageItem.attributes["selected"]
+				parent: chapters[0]
 			))
 		} );
-		parentChapter.children = pages;
-		parentTitle.children[parentChapterIndex] = parentChapter;
-		this.mangas.children[parentTitleIndex] = parentTitle;
+		await MangaReaderDBHandler.bulkInsert(pages);
 		return pages;
 	}
 
