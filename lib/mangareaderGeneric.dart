@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:mangareader/mangareader.dart';
 
 class MangaGeneric extends StatefulWidget {
 	MangaGeneric({
@@ -12,23 +12,6 @@ class MangaGeneric extends StatefulWidget {
 
 	@override
 	MangaGenericState createState() => MangaGenericState();
-
-	Future<bool> getStoragePermissions() async {
-		// bool checkResult = await SimplePermissions.checkPermission(
-		// 	Permission.WriteExternalStorage);
-		// if (!checkResult) {
-		// 	var status = await SimplePermissions.requestPermission(
-		// 		Permission.WriteExternalStorage);
-		// 	//print("permission request result is " + resReq.toString());
-		// 	if (status == PermissionStatus.authorized) {
-		// 		await downloadFile();
-		// 	}
-		// } else {
-		// 	await downloadFile();
-		// }
-		Map<PermissionGroup, PermissionStatus> permissions = await PermissionHandler().requestPermissions([PermissionGroup.storage]);
-		return permissions[PermissionGroup.storage] == PermissionStatus.granted;
-	}
 	
 }
 
@@ -111,7 +94,7 @@ class MangaGenericState extends State<MangaGeneric> {
 			floatingActionButton: FloatingActionButton(
 				onPressed: () async {
 					if(widget.floatBtnAction != null && !isDownloadInProgress){
-						bool allowed = await widget.getStoragePermissions();
+						bool allowed = await MangaReaderParser.getStoragePermissions();
 						if(allowed){
 							setState(() {
 								widget.floatBtnAction();

@@ -31,6 +31,7 @@ dependencies:
   permission_handler: ^3.3.0
   sqflite:
   path:
+  uuid:
 
 dev_dependencies:
   flutter_test:

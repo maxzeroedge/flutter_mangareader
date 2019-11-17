@@ -1,17 +1,25 @@
+import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:downloads_path_provider/downloads_path_provider.dart';
+import 'package:uuid/uuid.dart';
+
+import 'mangareader.dart';
 
 class MangaReaderData{
-	int id;
+	String id;
 	String url;
 	String name;
 	String levelType;
 	MangaReaderData parent;
 	List<MangaReaderData> children;
-	MangaReaderData({String url, String name, MangaReaderData parent, String isCurrentPage}){
+	MangaReaderData({String url, String name, MangaReaderData parent, String isCurrentPage, String id}){
 		this.url = url;
 		this.name = name;
 		this.parent = parent;
+		if(id != null){
+			this.id = id;
+		}
 	}
 
 	List<dynamic> getChild({String url, String name}){
@@ -28,7 +36,8 @@ class MangaReaderData{
 		return Map.from({
 			"url": this.url,
 			"name": this.name,
-			"parent": this.parent
+			"id": this.id != null ? this.id : Uuid().v4(),
+			"parent": this.parent != null ? this.parent.id : 'empty'
 		});
 	}
 
@@ -41,6 +50,10 @@ class MangaReaderData{
 			name: args["name"]
 		);
 	}
+
+	bool operator ==(obj) => (obj.name != null && obj.name == this.name) || (obj.url != null && obj.url == this.url);
+
+	String toString() => "[${this.id}] ${this.name} at ${this.url}";
 }
 
 
@@ -48,21 +61,27 @@ class MangaReaderDBHandler {
 	Database database;
 
 	static Future<Database> openConnection() async{
+		await MangaReaderParser.getStoragePermissions();
+		Directory downloadsContent = await DownloadsPathProvider.downloadsDirectory;
+		String dbPath = join(downloadsContent.path, "mangareader");
+		// dbPath = join( await getDatabasesPath() , 'mangareader_zero.db');
+		dbPath = join(dbPath, 'mangareader_zero.db');
 		return await openDatabase(
 			// Set the path to the database. Note: Using the `join` function from the
 			// `path` package is best practice to ensure the path is correctly
 			// constructed for each platform.
-			join( await getDatabasesPath() , 'mangareader_zero.db'),
+			dbPath,
 			onCreate: (db, version) {
 				// Run the CREATE TABLE statement on the database.
 				return db.execute(
-				"""CREATE TABLE IF NOT EXISTS MangaReaderData(
-					id INTEGER PRIMARY KEY AUTOINCREMENT, 
-					url TEXT, 
+				'''CREATE TABLE MangaReaderData(
+					id TEXT PRIMARY KEY UNIQUE, 
+					url TEXT UNIQUE, 
 					name TEXT, 
 					levelType TEXT, 
-					FOREIGN_KEY (parentId) REFERENCES MangaReaderData(id)
-						ON DELETE NO ACTION ON UPDATE NO ACTION )""",
+					parent TEXT,
+					FOREIGN KEY (parent) REFERENCES MangaReaderData(id)
+						ON DELETE NO ACTION ON UPDATE NO ACTION )''',
 				);
 			},
 			// Set the version. This executes the onCreate function and provides a
@@ -83,7 +102,7 @@ class MangaReaderDBHandler {
 
 	static Future<List<MangaReaderData>> getAllParentsFromDB() async {
 		Database database = await MangaReaderDBHandler.openConnection();
-		List<Map<String, dynamic>> mangaReaderList = await database.rawQuery("SELECT * FROM MangaReaderData where parent is null");
+		List<Map<String, dynamic>> mangaReaderList = await database.rawQuery("SELECT * FROM MangaReaderData where parent = 'empty'");
 		await database.close();
 		return List<MangaReaderData>.generate(mangaReaderList.length, (i){
 			return MangaReaderData.fromMap(mangaReaderList[i]);
@@ -97,7 +116,8 @@ class MangaReaderDBHandler {
 		if(url != null){
 			whereCondition = 'url = ?';
 			whereArgs.add(url);
-		} else {
+		} 
+		if(name != null) {
 			whereCondition = 'name = ?';
 			whereArgs.add(name);
 		}
@@ -106,7 +126,14 @@ class MangaReaderDBHandler {
 				whereCondition += " AND ";
 			}
 			whereCondition += "parent = ?";
-			whereArgs.add(parent);
+			if(parent.id == null){
+				print((await MangaReaderDBHandler.getFromDB(url: parent.url)));
+				parent = (await MangaReaderDBHandler.getFromDB(url: parent.url)).first;
+			}
+			whereArgs.add(parent.id);
+		}
+		if(whereArgs.isEmpty){
+			return null;
 		}
 		
 		List<Map<String, dynamic>> mangaReaderList = await database.query(
@@ -122,11 +149,17 @@ class MangaReaderDBHandler {
 
 	static Future<List<dynamic>> bulkInsert(List<MangaReaderData> items) async {
 		Database database = await MangaReaderDBHandler.openConnection();
-		Batch batch = database.batch();
+		List<MangaReaderData> uniqueItems = [];
 		items.forEach( (item) => {
+			if( !uniqueItems.contains(item) ){
+				uniqueItems.add(item)
+			}
+		} );
+		Batch batch = database.batch();
+		uniqueItems.forEach( (item) => {
 			batch.insert("MangaReaderData", item.toMap())
 		} );
-		List<dynamic> insertedList = await batch.commit(noResult: true);
+		List<dynamic> insertedList = await batch.commit(noResult: true, continueOnError: true);
 		await database.close();
 		return insertedList;
 	} 

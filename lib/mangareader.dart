@@ -3,7 +3,9 @@ import 'package:html/parser.dart' show parse;
 import 'dart:io';
 import 'package:downloads_path_provider/downloads_path_provider.dart';
 import 'package:mangareader/mangareaderDBHandler.dart';
-// import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 class MangaReaderParser{
 
 	String urlPrefix = "https://www.mangareader.net";
@@ -43,10 +45,15 @@ class MangaReaderParser{
 			print("How come no / more than 1 entry for the selected title?");
 			return null;
 		}
-		List<MangaReaderData> chapters = await MangaReaderDBHandler.getFromDB(
-			url: args["url"],
-			parent: titles[0]
-		);
+    List<MangaReaderData> chapters;
+		try{
+      chapters = await MangaReaderDBHandler.getFromDB(
+        parent: titles[0]
+      );
+    } catch(e){
+      print(e.toString());
+      return List<MangaReaderData>();
+    }
 		if(chapters != null && chapters.length > 0 && args["forceReload"] == null){
 			return chapters;
 		}
@@ -111,9 +118,9 @@ class MangaReaderParser{
 	Future<List<Map<String,String>>> getDownloadedItems (Map<String,String> args) async{
 		List<Map<String,String>> titles = [];
 		Directory downloadsContent = await DownloadsPathProvider.downloadsDirectory;
-		String parentPath = downloadsContent.path + "/mangareader";
+		String parentPath = join(downloadsContent.path, "mangareader");
 		if(args.containsKey("parentPath")){
-			parentPath += "/" + args["parentPath"];
+			parentPath += join(parentPath, args["parentPath"]);
 		}
 		if(args.containsKey("targetPath")){
 			parentPath = args["targetPath"];
@@ -194,6 +201,25 @@ class MangaReaderParser{
 		pages.forEach( (page) async => {
 			await _downloadFile( await getCurrentPageImage(page.toMap()) )
 		});
+	}
+
+  
+
+	static Future<bool> getStoragePermissions() async {
+		// bool checkResult = await SimplePermissions.checkPermission(
+		// 	Permission.WriteExternalStorage);
+		// if (!checkResult) {
+		// 	var status = await SimplePermissions.requestPermission(
+		// 		Permission.WriteExternalStorage);
+		// 	//print("permission request result is " + resReq.toString());
+		// 	if (status == PermissionStatus.authorized) {
+		// 		await downloadFile();
+		// 	}
+		// } else {
+		// 	await downloadFile();
+		// }
+		Map<PermissionGroup, PermissionStatus> permissions = await PermissionHandler().requestPermissions([PermissionGroup.storage]);
+		return permissions[PermissionGroup.storage] == PermissionStatus.granted;
 	}
 
 	
