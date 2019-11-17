@@ -78,11 +78,13 @@ class MangaReaderDBHandler {
 			mangaReaderData.toMap(),
 				conflictAlgorithm: ConflictAlgorithm.replace
 		);
+		await database.close();
 	}
 
 	static Future<List<MangaReaderData>> getAllParentsFromDB() async {
 		Database database = await MangaReaderDBHandler.openConnection();
 		List<Map<String, dynamic>> mangaReaderList = await database.rawQuery("SELECT * FROM MangaReaderData where parent is null");
+		await database.close();
 		return List<MangaReaderData>.generate(mangaReaderList.length, (i){
 			return MangaReaderData.fromMap(mangaReaderList[i]);
 		});
@@ -112,6 +114,7 @@ class MangaReaderDBHandler {
 			where: whereCondition,
 			whereArgs: whereArgs
 		);
+		await database.close();
 		return List<MangaReaderData>.generate(mangaReaderList.length, (i){
 			return MangaReaderData.fromMap(mangaReaderList[i]);
 		});
@@ -123,6 +126,8 @@ class MangaReaderDBHandler {
 		items.forEach( (item) => {
 			batch.insert("MangaReaderData", item.toMap())
 		} );
-		return await batch.commit(noResult: true);
+		List<dynamic> insertedList = await batch.commit(noResult: true);
+		await database.close();
+		return insertedList;
 	} 
 }
