@@ -46,6 +46,7 @@ class MangaReaderData{
 			return MangaReaderData();
 		}
 		return MangaReaderData(
+			id: args["id"],
 			url: args["url"],
 			name: args["name"]
 		);
@@ -102,6 +103,9 @@ class MangaReaderDBHandler {
 
 	static Future<List<MangaReaderData>> getAllParentsFromDB() async {
 		Database database = await MangaReaderDBHandler.openConnection();
+		if(!database.isOpen){
+			database = await MangaReaderDBHandler.openConnection();
+		}
 		List<Map<String, dynamic>> mangaReaderList = await database.rawQuery("SELECT * FROM MangaReaderData where parent = 'empty'");
 		await database.close();
 		return List<MangaReaderData>.generate(mangaReaderList.length, (i){
@@ -110,7 +114,6 @@ class MangaReaderDBHandler {
 	}
 
 	static Future<List<MangaReaderData>> getFromDB({String url, String name, MangaReaderData parent}) async {
-		Database database = await MangaReaderDBHandler.openConnection();
 		String whereCondition = "";
 		List<dynamic> whereArgs = [];
 		if(url != null){
@@ -127,8 +130,8 @@ class MangaReaderDBHandler {
 			}
 			whereCondition += "parent = ?";
 			if(parent.id == null){
-				print((await MangaReaderDBHandler.getFromDB(url: parent.url)));
-				parent = (await MangaReaderDBHandler.getFromDB(url: parent.url)).first;
+				List<MangaReaderData> parents = await MangaReaderDBHandler.getFromDB(name: parent.name);
+				parent = parents.first;
 			}
 			whereArgs.add(parent.id);
 		}
@@ -136,15 +139,20 @@ class MangaReaderDBHandler {
 			return null;
 		}
 		
-		List<Map<String, dynamic>> mangaReaderList = await database.query(
-			"MangaReaderData", 
-			where: whereCondition,
-			whereArgs: whereArgs
-		);
-		await database.close();
-		return List<MangaReaderData>.generate(mangaReaderList.length, (i){
-			return MangaReaderData.fromMap(mangaReaderList[i]);
-		});
+		Database database = await MangaReaderDBHandler.openConnection();
+		try{
+			List<Map<String, dynamic>> mangaReaderList = await database.query(
+				"MangaReaderData", 
+				where: whereCondition,
+				whereArgs: whereArgs
+			);
+			await database.close();
+			return List<MangaReaderData>.generate(mangaReaderList.length, (i){
+				return MangaReaderData.fromMap(mangaReaderList[i]);
+			});
+		} catch(e){
+			return List<MangaReaderData>();
+		}
 	}
 
 	static Future<List<dynamic>> bulkInsert(List<MangaReaderData> items) async {
@@ -159,6 +167,9 @@ class MangaReaderDBHandler {
 		uniqueItems.forEach( (item) => {
 			batch.insert("MangaReaderData", item.toMap())
 		} );
+		if(!database.isOpen){
+			database = await MangaReaderDBHandler.openConnection();
+		}
 		List<dynamic> insertedList = await batch.commit(noResult: true, continueOnError: true);
 		await database.close();
 		return insertedList;

@@ -24,7 +24,7 @@ class MangaPageView extends StatelessWidget {
 	final bool showCheckbox;
 	final bool enableTapFunction;
 	final Function childFutureFunction;
-	Map<String, String> args;
+	Map<String, dynamic> args;
 
 	String getNextRoute(bool isNext){
 		switch (this.pageType) {
@@ -73,7 +73,7 @@ class MangaPageView extends StatelessWidget {
 	@override
 	Widget build(BuildContext context) {
 		if( ModalRoute.of(context).settings.arguments != null ){
-			this.args = ( ModalRoute.of(context).settings.arguments as MangaReaderData ).toMap();
+			this.args = ( ModalRoute.of(context).settings.arguments as MangaReaderData ).toMap().cast<String, String>();
 		}
 		this.updatePagesSelected(null, clear: true);
 		Future<List<MangaReaderData>> listFuture = this.listFutureFunction(this.args);

@@ -22,8 +22,8 @@ class MangaReaderParser{
 			seriesAlphaUl.querySelectorAll("li").forEach( (seriesAlphaUlLi) => {
 				titles.add(
 					MangaReaderData(
-						url: this.urlPrefix + seriesAlphaUlLi.querySelector("a").attributes["href"],
-						name: seriesAlphaUlLi.querySelector("a").text,
+						url: this.urlPrefix + seriesAlphaUlLi.querySelector("a").attributes["href"].trim(),
+						name: seriesAlphaUlLi.querySelector("a").text.trim(),
 						parent: null
 				))
 			} )
@@ -45,15 +45,15 @@ class MangaReaderParser{
 			print("How come no / more than 1 entry for the selected title?");
 			return null;
 		}
-    List<MangaReaderData> chapters;
+		List<MangaReaderData> chapters;
 		try{
-      chapters = await MangaReaderDBHandler.getFromDB(
-        parent: titles[0]
-      );
-    } catch(e){
-      print(e.toString());
-      return List<MangaReaderData>();
-    }
+			chapters = await MangaReaderDBHandler.getFromDB(
+				parent: titles[0]
+			);
+		} catch(e){
+			print(e.toString());
+			return List<MangaReaderData>();
+		}
 		if(chapters != null && chapters.length > 0 && args["forceReload"] == null){
 			return chapters;
 		}
@@ -63,8 +63,8 @@ class MangaReaderParser{
 		htmlDocument.querySelector("div#chapterlist table#listing").querySelectorAll("tr").forEach( (chapterItem)=> {
 			chapterItem.querySelector("a") != null ? chapters.add(
 				MangaReaderData(
-					url :  this.urlPrefix + chapterItem.querySelector("a").attributes["href"],
-					name: chapterItem.querySelector("a").text,
+					url :  this.urlPrefix + chapterItem.querySelector("a").attributes["href"].trim(),
+					name: chapterItem.querySelector("a").text.trim(),
 					parent: titles[0]
 				)
 			) : ''
@@ -79,39 +79,41 @@ class MangaReaderParser{
 		if(args.isEmpty){
 			return null;
 		}
-		List<MangaReaderData> titles = await MangaReaderDBHandler.getFromDB(
-			url: args["url"]
-		);
-		if(titles == null || titles.length != 1){
-			print("How come no / more than 1 entry for the selected title?");
-			return null;
-		}
+		// List<MangaReaderData> titles = await MangaReaderDBHandler.getFromDB(
+		// 	url: args["url"]
+		// );
+		// if(titles == null || titles.length != 1){
+		// 	print("How come no / more than 1 entry for the selected title?");
+		// 	return null;
+		// }
 		List<MangaReaderData> chapters = await MangaReaderDBHandler.getFromDB(
-			url: args["url"],
-			parent: titles[0]
+			url: args["url"]
 		);
 		if(chapters == null || chapters.length != 1){
 			print("How come no / more than 1 entry for the selected chapter?");
-			return null;
+			return chapters;
 		}
 		List<MangaReaderData> pages = await MangaReaderDBHandler.getFromDB(
-			url: args["url"],
 			parent: chapters[0]
 		);
 		if(pages != null && pages.length > 0 && args["forceReload"] == null){
 			return pages;
 		}
 		var url = args["url"];
-		var response = await http.get(url);
-		var htmlDocument = parse(response.body);
-		htmlDocument.querySelector("div#selectpage select#pageMenu").querySelectorAll("option").forEach( (pageItem)=> {
-			pages.add(MangaReaderData(
-				url :  this.urlPrefix + pageItem.attributes["value"],
-				name: pageItem.text,
-				parent: chapters[0]
-			))
-		} );
-		await MangaReaderDBHandler.bulkInsert(pages);
+		try{
+			var response = await http.get(url);
+			var htmlDocument = parse(response.body);
+			htmlDocument.querySelector("div#selectpage select#pageMenu").querySelectorAll("option").forEach( (pageItem)=> {
+				pages.add(MangaReaderData(
+					url :  this.urlPrefix + pageItem.attributes["value"].trim(),
+					name: pageItem.text.trim(),
+					parent: chapters[0]
+				))
+			} );
+			await MangaReaderDBHandler.bulkInsert(pages);
+		} catch(e){
+			print(e);
+		}
 		return pages;
 	}
 
@@ -187,23 +189,23 @@ class MangaReaderParser{
 	// TODO: These fetch calls need parent data in MangaReaderData
 	Future<void> downloadTitles ( List<MangaReaderData> titles ) async{
 		titles.forEach( (title) async => {
-			await downloadChapters(await fetchChapters(title.toMap()))
+			await downloadChapters(await fetchChapters(title.toMap().cast<String, String>()))
 		});
 	}
 
 	Future<void> downloadChapters ( List<MangaReaderData> chapters ) async{
 		chapters.forEach( (page) async => {
-			await downloadPages( await fetchPages(page.toMap()) )
+			await downloadPages( await fetchPages(page.toMap().cast<String, String>()) )
 		});
 	}
 
 	Future<void> downloadPages ( List<MangaReaderData> pages ) async{
 		pages.forEach( (page) async => {
-			await _downloadFile( await getCurrentPageImage(page.toMap()) )
+			await _downloadFile( await getCurrentPageImage(page.toMap().cast<String, String>()) )
 		});
 	}
 
-  
+	
 
 	static Future<bool> getStoragePermissions() async {
 		// bool checkResult = await SimplePermissions.checkPermission(
