@@ -61,7 +61,8 @@ class MangaReaderDBHandler {
 					url TEXT, 
 					name TEXT, 
 					levelType TEXT, 
-					parentId INTEGER)""",
+					FOREIGN_KEY (parentId) REFERENCES MangaReaderData(id)
+						ON DELETE NO ACTION ON UPDATE NO ACTION )""",
 				);
 			},
 			// Set the version. This executes the onCreate function and provides a
@@ -75,13 +76,13 @@ class MangaReaderDBHandler {
 		database.insert(
 			"MangaReaderData", 
 			mangaReaderData.toMap(),
-    		conflictAlgorithm: ConflictAlgorithm.replace
+				conflictAlgorithm: ConflictAlgorithm.replace
 		);
 	}
 
 	static Future<List<MangaReaderData>> getAllParentsFromDB() async {
 		Database database = await MangaReaderDBHandler.openConnection();
-		List<Map<String, dynamic>> mangaReaderList = await database.query("MangaReaderData", where: "parentId = ?", whereArgs: [0]);
+		List<Map<String, dynamic>> mangaReaderList = await database.rawQuery("SELECT * FROM MangaReaderData where parent is null");
 		return List<MangaReaderData>.generate(mangaReaderList.length, (i){
 			return MangaReaderData.fromMap(mangaReaderList[i]);
 		});
@@ -102,8 +103,8 @@ class MangaReaderDBHandler {
 			if(whereCondition.length > 0){
 				whereCondition += " AND ";
 			}
-			whereCondition += "parentId = ?";
-			whereArgs.add(parent.id);
+			whereCondition += "parent = ?";
+			whereArgs.add(parent);
 		}
 		
 		List<Map<String, dynamic>> mangaReaderList = await database.query(
