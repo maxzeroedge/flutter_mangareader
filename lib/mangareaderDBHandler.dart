@@ -24,12 +24,11 @@ class MangaReaderData{
 		}
 	}
 
-	Map<String, String> toMap(){
+	Map<String, dynamic> toMap(){
 		return Map.from({
 			"url": this.url,
 			"name": this.name,
-			"parentUrl": this.parent != null ? this.parent.url : '',
-			"parentName": this.parent != null ? this.parent.name : '',
+			"parent": this.parent
 		});
 	}
 
@@ -62,7 +61,7 @@ class MangaReaderDBHandler {
 					url TEXT, 
 					name TEXT, 
 					levelType TEXT, 
-					parent MangaReaderData)""",
+					parentId INTEGER)""",
 				);
 			},
 			// Set the version. This executes the onCreate function and provides a
@@ -82,10 +81,7 @@ class MangaReaderDBHandler {
 
 	static Future<List<MangaReaderData>> getAllParentsFromDB() async {
 		Database database = await MangaReaderDBHandler.openConnection();
-		List<Map<String, dynamic>> mangaReaderList = await database.query("MangaReaderData",
-			where: "parent = ?",
-			whereArgs: [null]
-		);
+		List<Map<String, dynamic>> mangaReaderList = await database.query("MangaReaderData", where: "parentId = ?", whereArgs: [0]);
 		return List<MangaReaderData>.generate(mangaReaderList.length, (i){
 			return MangaReaderData.fromMap(mangaReaderList[i]);
 		});
@@ -106,8 +102,8 @@ class MangaReaderDBHandler {
 			if(whereCondition.length > 0){
 				whereCondition += " AND ";
 			}
-			whereCondition += "parent = ?";
-			whereArgs.add(parent);
+			whereCondition += "parentId = ?";
+			whereArgs.add(parent.id);
 		}
 		
 		List<Map<String, dynamic>> mangaReaderList = await database.query(

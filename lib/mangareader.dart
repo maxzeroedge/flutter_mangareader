@@ -11,7 +11,7 @@ class MangaReaderParser{
 
 	Future<List<MangaReaderData>> fetchTitles ( Map<String,String> args ) async{
 		List<MangaReaderData> titles = await MangaReaderDBHandler.getAllParentsFromDB();
-		if(titles != null && titles.length > 0 && args["forceReload"] == null){
+		if(titles != null && titles.length > 0 && args != null && args["forceReload"] == null){
 			return titles;
 		}
 		var response = await http.get("https://www.mangareader.net/alphabetical");

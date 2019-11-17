@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mangareader/mangaFutureBuilder.dart';
-import 'package:mangareader/mangareader.dart';
+import 'package:mangareader/mangareaderDBHandler.dart';
 
 import 'mangareaderDetails.dart';
 

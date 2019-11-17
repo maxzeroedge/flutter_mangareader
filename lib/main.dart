@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mangareader/mangareaderDetails.dart';
 import 'package:mangareader/mangareaderGeneric.dart';
 import 'package:mangareader/mangareaderListPageView.dart';
-import 'mangareader.dart';
+import 'package:mangareader/mangareaderDBHandler.dart';
+import 'package:mangareader/mangareader.dart';
 import 'mangareaderList.dart';
 
 void main() => runApp(MyApp());
