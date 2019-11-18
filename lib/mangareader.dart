@@ -117,23 +117,23 @@ class MangaReaderParser{
 		return pages;
 	}
 
-	Future<List<Map<String,String>>> getDownloadedItems (Map<String,String> args) async{
-		List<Map<String,String>> titles = [];
+	Future<List<MangaReaderData>> getDownloadedItems (Map<String,String> args) async{
+		List<MangaReaderData> titles = [];
 		Directory downloadsContent = await DownloadsPathProvider.downloadsDirectory;
 		String parentPath = join(downloadsContent.path, "mangareader");
 		if(args.containsKey("parentPath")){
 			parentPath += join(parentPath, args["parentPath"]);
 		}
-		if(args.containsKey("targetPath")){
-			parentPath = args["targetPath"];
+		if(args.containsKey("url")){
+			parentPath = args["url"];
 		}
 		Directory(parentPath)
 			.listSync()
 			.forEach( (f) async => {
-			titles.add({
-				"name": f.path.split("/").last,
-				"targetPath": f.absolute.path
-			})
+			titles.add(MangaReaderData(
+				name: f.path.split("/").last,
+				url: f.absolute.path
+			))
 		});
 		return titles;
 	}

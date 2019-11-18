@@ -69,8 +69,13 @@ class MangaList extends StatelessWidget {
 
 	@override
 	Widget build(BuildContext context) {
-		if( ModalRoute.of(context).settings.arguments != null ){
-			this.args = ( ModalRoute.of(context).settings.arguments as MangaReaderData ).toMap().cast<String, String>();
+		Object arguments = ModalRoute.of(context).settings.arguments;
+		if( arguments != null ){
+			if( arguments is MangaReaderData ){
+				this.args = arguments.toMap().cast<String, String>();
+			} else if( arguments is Map) {
+				this.args = arguments.cast<String, String>();
+			}
 		}
 		this.updatePagesSelected(null, clear: true);
 		Future<List<MangaReaderData>> listFuture = this.listFutureFunction(this.args);
