@@ -62,6 +62,7 @@ class MangaPageView extends StatelessWidget {
 			itemBuilder: (context, position) {
 				return MangaDetails(
 					title: snapshotData[position].name,
+					url: snapshotData[position].url,
 					listFutureFunction: this.childFutureFunction,
 					pageType: "Page"
 				);

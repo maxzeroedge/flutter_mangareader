@@ -6,11 +6,13 @@ class MangaDetails extends StatelessWidget {
 	MangaDetails({
 		Key key, 
 		this.title, 
+		this.url,
 		this.image, 
 		this.listFutureFunction,
 		this.pageType
 	}) : super(key: key);
 	final String title;
+	final String url;
 	final String image;
 	final dynamic listFutureFunction;
 	final String pageType;
@@ -34,7 +36,14 @@ class MangaDetails extends StatelessWidget {
 
 	@override
 	Widget build(BuildContext context) {
-		this.args = ( ModalRoute.of(context).settings.arguments as MangaReaderData ).toMap().cast<String, String>();
+		if(this.url == null){
+			this.args = ( ModalRoute.of(context).settings.arguments as MangaReaderData ).toMap().cast<String, String>();
+		} else {
+			this.args = {
+				"name": this.title,
+				"url": this.url
+			};
+		}
 		return Scaffold(
 			body: FutureBuilder(
 				future: this.listFutureFunction(this.args),
