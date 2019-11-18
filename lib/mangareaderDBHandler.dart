@@ -103,14 +103,16 @@ class MangaReaderDBHandler {
 
 	static Future<List<MangaReaderData>> getAllParentsFromDB() async {
 		Database database = await MangaReaderDBHandler.openConnection();
-		if(!database.isOpen){
-			database = await MangaReaderDBHandler.openConnection();
+		try{
+			List<Map<String, dynamic>> mangaReaderList = await database.rawQuery("SELECT * FROM MangaReaderData where parent = 'empty'");
+			await database.close();
+			return List<MangaReaderData>.generate(mangaReaderList.length, (i){
+				return MangaReaderData.fromMap(mangaReaderList[i]);
+			});
+		} catch(e){
+			print(e);
+			return List<MangaReaderData>();
 		}
-		List<Map<String, dynamic>> mangaReaderList = await database.rawQuery("SELECT * FROM MangaReaderData where parent = 'empty'");
-		await database.close();
-		return List<MangaReaderData>.generate(mangaReaderList.length, (i){
-			return MangaReaderData.fromMap(mangaReaderList[i]);
-		});
 	}
 
 	static Future<List<MangaReaderData>> getFromDB({String url, String name, MangaReaderData parent}) async {

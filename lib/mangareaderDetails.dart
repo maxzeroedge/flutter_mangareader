@@ -34,7 +34,7 @@ class MangaDetails extends StatelessWidget {
 
 	@override
 	Widget build(BuildContext context) {
-		this.args = ( ModalRoute.of(context).settings.arguments as MangaReaderData ).toMap();
+		this.args = ( ModalRoute.of(context).settings.arguments as MangaReaderData ).toMap().cast<String, String>();
 		return Scaffold(
 			body: FutureBuilder(
 				future: this.listFutureFunction(this.args),
