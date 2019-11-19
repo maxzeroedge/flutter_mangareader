@@ -98,9 +98,10 @@ class MangaGenericState extends State<MangaGeneric> {
 						if(allowed){
 							setState(() {
 								isDownloadInProgress = true;
-								widget.floatBtnAction(setState(()=>{
-									isDownloadInProgress = false
-								}));
+							});
+							await widget.floatBtnAction();
+							setState(() {
+								isDownloadInProgress = false;
 							});
 						} else {
 							Scaffold.of(context).showSnackBar(new SnackBar(

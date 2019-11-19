@@ -13,8 +13,8 @@ MangaReaderParser mangaReaderParser = MangaReaderParser();
 class MyApp extends StatelessWidget {
 
 	Function floatBtnFunction(Function floatFunction){
-		return (callback)=>{
-			floatFunction(mangaReaderParser.updatePagesSelected(null), callback)
+		return ()=>{
+			floatFunction(mangaReaderParser.updatePagesSelected(null))
 		};
 	}
 	
