@@ -187,22 +187,31 @@ class MangaReaderParser{
 	}
 
 	// TODO: These fetch calls need parent data in MangaReaderData
-	Future<void> downloadTitles ( List<MangaReaderData> titles ) async{
+	Future<void> downloadTitles ( List<MangaReaderData> titles, {Function callback} ) async{
 		titles.forEach( (title) async => {
 			await downloadChapters(await fetchChapters(title.toMap().cast<String, String>()))
 		});
+		if(callback != null){
+			callback();
+		}
 	}
 
-	Future<void> downloadChapters ( List<MangaReaderData> chapters ) async{
+	Future<void> downloadChapters ( List<MangaReaderData> chapters, {Function callback} ) async{
 		chapters.forEach( (page) async => {
 			await downloadPages( await fetchPages(page.toMap().cast<String, String>()) )
 		});
+		if(callback != null){
+			callback();
+		}
 	}
 
-	Future<void> downloadPages ( List<MangaReaderData> pages ) async{
+	Future<void> downloadPages ( List<MangaReaderData> pages, {Function callback} ) async{
 		pages.forEach( (page) async => {
 			await _downloadFile( await getCurrentPageImage(page.toMap().cast<String, String>()) )
 		});
+		if(callback != null){
+			callback();
+		}
 	}
 
 	

@@ -97,7 +97,10 @@ class MangaGenericState extends State<MangaGeneric> {
 						bool allowed = await MangaReaderParser.getStoragePermissions();
 						if(allowed){
 							setState(() {
-								widget.floatBtnAction();
+								isDownloadInProgress = true;
+								widget.floatBtnAction(setState(()=>{
+									isDownloadInProgress = false
+								}));
 							});
 						} else {
 							Scaffold.of(context).showSnackBar(new SnackBar(
