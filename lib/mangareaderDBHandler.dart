@@ -13,13 +13,14 @@ class MangaReaderData{
 	String levelType;
 	MangaReaderData parent;
 	List<MangaReaderData> children;
-	MangaReaderData({String url, String name, MangaReaderData parent, String isCurrentPage, String id}){
+	MangaReaderData({String url, String name, MangaReaderData parent, String isCurrentPage, String id, String levelType}){
 		this.url = url;
 		this.name = name;
 		this.parent = parent;
 		if(id != null){
 			this.id = id;
 		}
+    this.levelType = levelType;
 	}
 
 	List<dynamic> getChild({String url, String name}){
@@ -37,7 +38,8 @@ class MangaReaderData{
 			"url": this.url,
 			"name": this.name,
 			"id": this.id != null ? this.id : Uuid().v4(),
-			"parent": this.parent != null ? this.parent.id : 'empty'
+			"parent": this.parent != null ? this.parent.id : 'empty',
+      "levelType": this.levelType
 		});
 	}
 

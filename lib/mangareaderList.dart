@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mangareader/mangaFutureBuilder.dart';
 import 'package:mangareader/mangareaderDBHandler.dart';
 
-class MangaList extends StatelessWidget {
+class MangaList extends StatefulWidget {
 	MangaList({
 		Key key, 
 		this.title, 
@@ -20,10 +20,16 @@ class MangaList extends StatelessWidget {
 	final String pageType;
 	final bool showCheckbox;
 	final bool enableTapFunction;
+	
+	@override
+	MangaListState createState() => MangaListState();
+}
+
+class MangaListState extends State<MangaList>{
 	Map<String, dynamic> args;
 
 	String getNextRoute(bool isNext){
-		switch (this.pageType) {
+		switch (widget.pageType) {
 			case "Titles":
 				return isNext ? "/chapters/list" : "/mangas/list";
 				break;
@@ -34,6 +40,9 @@ class MangaList extends StatelessWidget {
 				return isNext ? "/page" : "/pages/list";
 				break;
 			case "Downloads":
+				if( this.args.containsKey("levelType") && this.args["levelType"] == "Chapter" ){
+					return "/downloadPage";
+				}
 				return "/downloads";
 				break;
 			default:
@@ -58,10 +67,10 @@ class MangaList extends StatelessWidget {
 			itemBuilder: (context, position) {
 				return MangaListItem(
 					getNextRoute: this.getNextRoute,
-					showCheckbox: this.showCheckbox,
+					showCheckbox: widget.showCheckbox,
 					snapshotData: snapshotData[position],
-					updatePagesSelected: this.updatePagesSelected,
-					enableTapFunction: this.enableTapFunction
+					updatePagesSelected: widget.updatePagesSelected,
+					enableTapFunction: widget.enableTapFunction
 				);
 			},
 		);
@@ -77,8 +86,8 @@ class MangaList extends StatelessWidget {
 				this.args = arguments.cast<String, String>();
 			}
 		}
-		this.updatePagesSelected(null, clear: true);
-		Future<List<MangaReaderData>> listFuture = this.listFutureFunction(this.args);
+		widget.updatePagesSelected(null, clear: true);
+		Future<List<MangaReaderData>> listFuture = widget.listFutureFunction(this.args);
 		return Scaffold(
 			body: FutureBuilder(
 				future: listFuture,

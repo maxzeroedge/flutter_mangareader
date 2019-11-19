@@ -89,6 +89,13 @@ class MyApp extends StatelessWidget {
 						enableTapFunction: true,
 					),
 				),
+				'/downloadPage': (context) =>  MangaGeneric(
+					childWidget: MangaDetails(
+						title: "Downloaded Page",
+						listFutureFunction: mangaReaderParser.getDownloadedItems,
+						pageType: "DownloadPage",
+					),
+				),
 			},
 		);
 	}

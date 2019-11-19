@@ -132,7 +132,8 @@ class MangaReaderParser{
 			.forEach( (f) async => {
 			titles.add(MangaReaderData(
 				name: f.path.split("/").last,
-				url: f.absolute.path
+				url: f.absolute.path,
+				levelType: FileSystemEntity.isFileSync(f.path) ? "Chapter" : "Folder"
 			))
 		});
 		return titles;
