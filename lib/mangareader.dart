@@ -121,21 +121,35 @@ class MangaReaderParser{
 		List<MangaReaderData> titles = [];
 		Directory downloadsContent = await DownloadsPathProvider.downloadsDirectory;
 		String parentPath = join(downloadsContent.path, "mangareader");
+		String folderType = "Titles";
 		if(args.containsKey("parentPath")){
 			parentPath += join(parentPath, args["parentPath"]);
+			if(folderType == "Titles"){
+				folderType = "Chapters";
+			} else if(folderType == "Chapters"){
+				folderType = "Pages";
+			}
 		}
 		if(args.containsKey("url")){
 			parentPath = args["url"];
+			if(folderType == "Titles"){
+				folderType = "Chapters";
+			} else if(folderType == "Chapters"){
+				folderType = "Pages";
+			}
 		}
-		Directory(parentPath)
-			.listSync()
-			.forEach( (f) async => {
+		List<FileSystemEntity> directories = Directory(parentPath).listSync();
+		directories.sort( (a, b) => a.path.compareTo(b.path) );
+		directories.forEach( (f) async => {
 			titles.add(MangaReaderData(
 				name: f.path.split("/").last,
 				url: f.absolute.path,
-				levelType: FileSystemEntity.isFileSync(f.path) ? "Chapter" : "Folder"
+				levelType: folderType
 			))
 		});
+		if(folderType == "Titles"){
+			titles.retainWhere( (f) => !FileSystemEntity.isFileSync(f.url));
+		}
 		return titles;
 	}
 
@@ -184,6 +198,7 @@ class MangaReaderParser{
 		await new Directory('$dir/$folderName').create(recursive: true);
 		File file = new File('$dir/$filename');
 		await file.writeAsBytes(bytes);
+		print("$filename downloaded");
 		return file;
 	}
 

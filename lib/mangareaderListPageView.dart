@@ -45,6 +45,10 @@ class MangaPageView extends StatelessWidget {
 		}
 	}
 
+	Future<String> dummyChildFunction(Map<String, String> returnable) async{
+		return returnable["url"];
+	}
+
 	Widget buildWidget(dynamic snapshotData){
 		if(snapshotData.length < 1){
 			return Column(
@@ -60,10 +64,14 @@ class MangaPageView extends StatelessWidget {
 		return PageView.builder(
 			itemCount: snapshotData.length,
 			itemBuilder: (context, position) {
+				Function childFunction = this.childFutureFunction;
+				if(childFunction == null){
+					childFunction = dummyChildFunction;
+				}
 				return MangaDetails(
 					title: snapshotData[position].name,
 					url: snapshotData[position].url,
-					listFutureFunction: this.childFutureFunction,
+					listFutureFunction: childFunction,
 					pageType: "Page"
 				);
 			},
@@ -76,7 +84,9 @@ class MangaPageView extends StatelessWidget {
 		if( ModalRoute.of(context).settings.arguments != null ){
 			this.args = ( ModalRoute.of(context).settings.arguments as MangaReaderData ).toMap().cast<String, String>();
 		}
-		this.updatePagesSelected(null, clear: true);
+		if(this.updatePagesSelected != null){
+			this.updatePagesSelected(null, clear: true);
+		}
 		Future<List<MangaReaderData>> listFuture = this.listFutureFunction(this.args);
 		return Scaffold(
 			body: FutureBuilder(

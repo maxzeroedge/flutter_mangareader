@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:mangareader/mangaFutureBuilder.dart';
 import 'package:mangareader/mangareaderDBHandler.dart';
@@ -23,9 +25,16 @@ class MangaDetails extends StatelessWidget {
 			children: <Widget>[
 				Scrollable(
 					viewportBuilder: (context, offset){
+						Widget imageWidget;
+						print(snapshotData);
+						if(snapshotData.toString().startsWith("http")){
+							imageWidget = Image.network(snapshotData);
+						} else {
+							imageWidget = Image.file( File(snapshotData) );
+						}
 						return Column(
 							children: <Widget>[
-								Image.network(snapshotData)
+								imageWidget
 							],
 						);
 					},

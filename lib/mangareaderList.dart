@@ -28,7 +28,7 @@ class MangaList extends StatefulWidget {
 class MangaListState extends State<MangaList>{
 	Map<String, dynamic> args;
 
-	String getNextRoute(bool isNext){
+	String getNextRoute(bool isNext, {String levelType}){
 		switch (widget.pageType) {
 			case "Titles":
 				return isNext ? "/chapters/list" : "/mangas/list";
@@ -40,7 +40,7 @@ class MangaListState extends State<MangaList>{
 				return isNext ? "/page" : "/pages/list";
 				break;
 			case "Downloads":
-				if( this.args.containsKey("levelType") && this.args["levelType"] == "Chapter" ){
+				if( this.args.containsKey("levelType") && levelType == "Chapters" ){
 					return "/downloadPage";
 				}
 				return "/downloads";
@@ -142,10 +142,10 @@ class MangaListItemState extends State<MangaListItem> {
 			onTap: (){
 				if(widget.enableTapFunction){
 					Navigator.pushNamed(
-					context, 
-					widget.getNextRoute(true),
-					arguments: widget.snapshotData
-				);
+						context, 
+						widget.getNextRoute(true, levelType: widget.snapshotData.levelType),
+						arguments: widget.snapshotData
+					);
 				}
 			},
 			child: Container(
