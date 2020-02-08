@@ -4,7 +4,7 @@ import 'package:mangareader/mangareaderGeneric.dart';
 import 'package:mangareader/mangareaderListPageView.dart';
 import 'package:mangareader/mangareaderDBHandler.dart';
 import 'package:mangareader/mangareader.dart';
-import 'mangareaderList.dart';
+import 'package:mangareader/mangareaderList.dart';
 
 void main() => runApp(MyApp());
 

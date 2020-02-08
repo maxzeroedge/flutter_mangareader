@@ -177,7 +177,7 @@ class MangaReaderParser{
 		return this.pagesSelected;
 	}
 
-	Future<File> _downloadFile(String url, { String filename }) async {
+	Future<File> _downloadFile(String url, { String filename, String prefix }) async {
 		var folderName = "";
 		if(filename == null){
 			var parts = url.split("/").reversed.iterator;
@@ -186,8 +186,8 @@ class MangaReaderParser{
 			parts.moveNext();
 			folderName = parts.current;
 			parts.moveNext();
-			folderName = "mangareader/" + parts.current + "/" + folderName + "/";
-			filename = folderName + "/" + fileName.split("?")[0]; 
+			folderName = "mangareader/${parts.current}/$folderName/";
+			filename = "$folderName/${prefix != null ? prefix + '-' : ''}${fileName.split("?")[0]}"; 
 		}
 		http.Client _client = new http.Client();
 		var req = await _client.get(Uri.parse(url));
@@ -222,8 +222,8 @@ class MangaReaderParser{
 	}
 
 	Future<void> downloadPages ( List<MangaReaderData> pages, {Function callback} ) async{
-		pages.forEach( (page) async => {
-			await _downloadFile( await getCurrentPageImage(page.toMap().cast<String, String>()) )
+		pages.asMap().forEach( (index, page) async => {
+			await _downloadFile( await getCurrentPageImage(page.toMap().cast<String, String>()), prefix: "$index" )
 		});
 		if(callback != null){
 			callback();
